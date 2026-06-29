@@ -82,7 +82,12 @@ export default function FieldReturn() {
         </div>
         <p className="text-slate-700">{work.denominacao}</p>
         {work.descricao && <p className="mt-1 text-sm text-slate-500">{work.descricao}</p>}
+        {work.tarefas && <p className="mt-1 text-sm text-slate-600"><span className="font-medium">Tarefas:</span> {work.tarefas}</p>}
         <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-slate-500">
+          {work.pm && <><dt className="font-medium">PM</dt><dd>{work.pm}</dd></>}
+          {work.commune && <><dt className="font-medium">Commune</dt><dd>{work.commune}</dd></>}
+          {work.tipo_trabalho && <><dt className="font-medium">Tipo</dt><dd>{work.tipo_trabalho}</dd></>}
+          {work.cdt && <><dt className="font-medium">CDT</dt><dd>{work.cdt}</dd></>}
           {work.zona && <><dt className="font-medium">Zona</dt><dd>{work.zona}</dd></>}
           {work.morada && <><dt className="font-medium">Morada</dt><dd>{work.morada}</dd></>}
           {work.lat != null && <><dt className="font-medium">Coords</dt><dd>{work.lat?.toFixed?.(5)}, {work.lng?.toFixed?.(5)}</dd></>}

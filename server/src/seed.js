@@ -34,7 +34,7 @@ async function main() {
   // Trabalhos de exemplo (Lisboa + Porto + Lyon)
   const works = [
     { id_ordem: 'ORD-1001', denominacao: 'Caixa CTO Av. Liberdade', lat: 38.7223, lng: -9.1393, estado: 'PENDENTE',              country: 'PT', zona: 'Lisboa', team: 'Equipa Centro' },
-    { id_ordem: 'ORD-1002', denominacao: 'Poste Rua Augusta',        lat: 38.7100, lng: -9.1369, estado: 'POSTES_1_5',            country: 'PT', zona: 'Lisboa', team: 'Equipa Centro' },
+    { id_ordem: 'ORD-1002', denominacao: 'Poste Rua Augusta',        lat: 38.7100, lng: -9.1369, estado: 'A_FAZER',               country: 'PT', zona: 'Lisboa', team: 'Equipa Centro' },
     { id_ordem: 'ORD-1003', denominacao: 'Raccordement Boavista',     lat: 41.1579, lng: -8.6291, estado: 'TIRAGE_OK_FALTA_RACCO', country: 'PT', zona: 'Porto',  team: 'Equipa Norte' },
     { id_ordem: 'ORD-1004', denominacao: 'CTO Bellecour',             lat: 45.7578, lng:  4.8320, estado: 'A_FAZER',               country: 'FR', zona: 'Lyon',   team: 'Équipe Lyon' },
     { id_ordem: 'ORD-1005', denominacao: 'Tirage Part-Dieu',          lat: 45.7605, lng:  4.8595, estado: 'NOK',                   country: 'FR', zona: 'Lyon',   team: 'Équipe Lyon' },

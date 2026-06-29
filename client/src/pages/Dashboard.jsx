@@ -8,13 +8,15 @@ import StateBadge from '../components/StateBadge.jsx';
 export default function Dashboard() {
   const navigate = useNavigate();
   const [works, setWorks] = useState([]);
+  const [allWorks, setAllWorks] = useState([]); // sem filtros, p/ construir as listas de opções
   const [teams, setTeams] = useState([]);
-  const [filters, setFilters] = useState({ estado: '', team_id: '', country: '', zona: '', q: '' });
+  const [filters, setFilters] = useState({ estado: '', team_id: '', country: '', zona: '', cdt: '', tipo_trabalho: '', q: '' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState('');
 
   useEffect(() => { api.listTeams().then((d) => setTeams(d.teams)).catch(() => {}); }, []);
+  useEffect(() => { api.listWorks({}).then((d) => setAllWorks(d.works)).catch(() => {}); }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -28,12 +30,15 @@ export default function Dashboard() {
     () => works.map((w) => ({
       id: w.id, lat: w.lat, lng: w.lng, estado: w.estado,
       title: `${w.id_ordem} — ${w.denominacao}`,
-      subtitle: [w.team_name, w.zona].filter(Boolean).join(' · '),
+      subtitle: [w.commune || w.zona, w.tipo_trabalho].filter(Boolean).join(' · '),
     })),
     [works]
   );
 
-  const zonas = useMemo(() => [...new Set(works.map((w) => w.zona).filter(Boolean))].sort(), [works]);
+  const distinct = (key) => [...new Set(allWorks.map((w) => w[key]).filter(Boolean))].sort();
+  const zonas = useMemo(() => distinct('zona'), [allWorks]);
+  const cdts = useMemo(() => distinct('cdt'), [allWorks]);
+  const tipos = useMemo(() => distinct('tipo_trabalho'), [allWorks]);
 
   async function doExport(fmt) {
     setExporting(fmt);
@@ -91,6 +96,14 @@ export default function Dashboard() {
             <option value="">Todas as zonas</option>
             {zonas.map((z) => <option key={z} value={z}>{z}</option>)}
           </select>
+          <select value={filters.tipo_trabalho} onChange={set('tipo_trabalho')} className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+            <option value="">Todos os tipos</option>
+            {tipos.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <select value={filters.cdt} onChange={set('cdt')} className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+            <option value="">Todos os CDT</option>
+            {cdts.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
 
         {/* Export */}
@@ -116,10 +129,15 @@ export default function Dashboard() {
           ) : works.map((w) => (
             <button key={w.id} onClick={() => navigate(`/trabalhos/${w.id}/editar`)}
               className="w-full text-left p-3 hover:bg-slate-50 flex items-start justify-between gap-2">
-              <span>
-                <span className="font-medium text-slate-800">{w.id_ordem}</span>
-                <span className="block text-sm text-slate-500">{w.denominacao}</span>
-                <span className="block text-xs text-slate-400">{[w.team_name, w.zona].filter(Boolean).join(' · ')}</span>
+              <span className="min-w-0">
+                <span className="font-medium text-slate-800">{w.pm || w.id_ordem}</span>
+                <span className="block text-sm text-slate-500 truncate">{w.denominacao}</span>
+                <span className="block text-xs text-slate-400">
+                  {[w.commune || w.zona, w.tipo_trabalho].filter(Boolean).join(' · ')}
+                </span>
+                <span className="block text-xs text-slate-400">
+                  {[w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
+                </span>
               </span>
               <StateBadge code={w.estado} />
             </button>

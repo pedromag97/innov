@@ -16,7 +16,7 @@ const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada'
 // Filtros: ?estado=&team_id=&country=&zona=&q=
 // Equipa de terreno (FIELD) só vê trabalhos da sua equipa.
 router.get('/', async (req, res) => {
-  const { estado, team_id, country, zona, q } = req.query;
+  const { estado, team_id, country, zona, cdt, tipo_trabalho, q } = req.query;
   const where = [];
   const params = [];
   const add = (clause, val) => { params.push(val); where.push(clause.replace('?', `$${params.length}`)); };
@@ -30,6 +30,8 @@ router.get('/', async (req, res) => {
   if (estado) add('w.estado = ?', estado);
   if (country) add('w.country = ?', country);
   if (zona) add('w.zona = ?', zona);
+  if (cdt) add('w.cdt = ?', cdt);
+  if (tipo_trabalho) add('w.tipo_trabalho = ?', tipo_trabalho);
 
   let sqlWhere = where.join(' AND ');
   if (q) {

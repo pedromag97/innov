@@ -27,7 +27,7 @@ const users = [
 // Trabalhos de exemplo — mistura PT + França real (Loiret/Isère), estados variados.
 let works = [
   { id: 1, id_ordem: 'ORD-1001', denominacao: 'Caixa CTO Av. Liberdade', pm: 'PM012', commune: 'Lisboa', tipo_trabalho: 'POIV', cdt: 'Rogério Pinto', tarefas: '120m 12FO, 1 PBO', estado: 'PENDENTE', lat: 38.7223, lng: -9.1393, country: 'PT', zona: 'Lisboa', team_id: 2, team_name: 'Equipa Centro' },
-  { id: 2, id_ordem: 'ORD-1002', denominacao: 'Poste Rua Augusta', pm: 'PM008', commune: 'Lisboa', tipo_trabalho: 'VTL', cdt: 'Marco Mendes', tarefas: '5 LRs', estado: 'POSTES_1_5', lat: 38.7100, lng: -9.1369, country: 'PT', zona: 'Lisboa', team_id: 2, team_name: 'Equipa Centro' },
+  { id: 2, id_ordem: 'ORD-1002', denominacao: 'Poste Rua Augusta', pm: 'PM008', commune: 'Lisboa', tipo_trabalho: 'VTL', cdt: 'Marco Mendes', tarefas: '5 LRs', estado: 'A_FAZER', lat: 38.7100, lng: -9.1369, country: 'PT', zona: 'Lisboa', team_id: 2, team_name: 'Equipa Centro' },
   { id: 3, id_ordem: 'ORD-1003', denominacao: 'Raccordement Boavista', pm: 'PM40A0', commune: 'Porto', tipo_trabalho: 'DEPLOIMENT', cdt: 'Bernardo Silva', tarefas: 'Tirage 300m', estado: 'TIRAGE_OK_FALTA_RACCO', lat: 41.1579, lng: -8.6291, country: 'PT', zona: 'Porto', team_id: 1, team_name: 'Equipa Norte' },
   { id: 4, id_ordem: 'ORD-1006', denominacao: 'CTO Matosinhos', pm: 'PM001', commune: 'Matosinhos', tipo_trabalho: 'ZMD', cdt: 'Rogério Pinto', tarefas: '200m 24FO', estado: 'FEITO', lat: 41.1844, lng: -8.6916, country: 'PT', zona: 'Porto', team_id: 1, team_name: 'Equipa Norte' },
   { id: 5, id_ordem: 'SARAN_DU_RAYON_D_OR_155_1_V1', denominacao: 'Saran — Rayon d\'Or', pm: 'PM008', commune: 'SARAN', tipo_trabalho: 'POIV', cdt: 'Gilles Gouge', tarefas: '420m 12FO, 1 PBO', estado: 'FEITO', lat: 47.9486, lng: 1.8736, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
@@ -50,6 +50,8 @@ function filterWorks(params = {}) {
     if (params.team_id && String(w.team_id) !== String(params.team_id)) return false;
     if (params.country && w.country !== params.country) return false;
     if (params.zona && w.zona !== params.zona) return false;
+    if (params.cdt && w.cdt !== params.cdt) return false;
+    if (params.tipo_trabalho && w.tipo_trabalho !== params.tipo_trabalho) return false;
     if (params.q) {
       const q = params.q.toLowerCase();
       if (!(`${w.id_ordem} ${w.denominacao}`.toLowerCase().includes(q))) return false;

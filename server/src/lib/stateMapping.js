@@ -26,7 +26,6 @@ const RULES = [
   [/manque gc|falta gc|sans gc|pas de gc|gc por fazer|gc\/neve|attente.*gc|pendente - gc|\bgc\b/, 'PENDENTE_GC'],
   [/nao esta no suivi|pas dans le suivi|introuvable.*suivi|nao no suivi/, 'NAO_NO_SUIVI'],
   [/a enviar retorno|retour a envoyer|retour a enviar|retorno a enviar|a enviar/, 'A_ENVIAR_RETORNO'],
-  [/1-?5 postes|1 a 5 postes|\bpostes?\b/, 'POSTES_1_5'],
   [/\bnok\b/, 'NOK'],
   [/a fazer|a faire|att a fazer/, 'A_FAZER'],
   [/feito|\bfait\b|termine|^ok\b|^ok-|^ok /, 'FEITO'],

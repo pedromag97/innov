@@ -7,6 +7,7 @@ import StateBadge from '../components/StateBadge.jsx';
 
 const EMPTY = {
   id_ordem: '', denominacao: '', descricao: '',
+  pm: '', commune: '', tipo_trabalho: '', cdt: '', tarefas: '', ticket_ref: '',
   lat: null, lng: null, morada: '',
   estado: 'PENDENTE', country: 'PT', zona: '', team_id: '',
 };
@@ -73,9 +74,17 @@ export default function WorkForm() {
           {isEdit && <StateBadge code={form.estado} size="md" />}
         </div>
 
-        <Field label="ID Ordem *"><input required value={form.id_ordem} onChange={set('id_ordem')} className="inp" /></Field>
+        <Field label="ID Ordem / Dossier *"><input required value={form.id_ordem} onChange={set('id_ordem')} className="inp" /></Field>
         <Field label="Denominação *"><input required value={form.denominacao} onChange={set('denominacao')} className="inp" /></Field>
-        <Field label="Descrição"><textarea value={form.descricao || ''} onChange={set('descricao')} rows={2} className="inp" /></Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="PM"><input value={form.pm || ''} onChange={set('pm')} className="inp" placeholder="PM008" /></Field>
+          <Field label="Commune"><input value={form.commune || ''} onChange={set('commune')} className="inp" placeholder="SARAN" /></Field>
+          <Field label="Tipo de trabalho"><input value={form.tipo_trabalho || ''} onChange={set('tipo_trabalho')} className="inp" placeholder="ZMD, POIV, DEPLOIMENT…" /></Field>
+          <Field label="CDT (condutor)"><input value={form.cdt || ''} onChange={set('cdt')} className="inp" placeholder="Gilles Gouge" /></Field>
+        </div>
+        <Field label="Tarefas"><input value={form.tarefas || ''} onChange={set('tarefas')} className="inp" placeholder="420m 12FO, 1 PBO" /></Field>
+        <Field label="Descrição / Observações"><textarea value={form.descricao || ''} onChange={set('descricao')} rows={2} className="inp" /></Field>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Estado">
@@ -95,7 +104,8 @@ export default function WorkForm() {
               <option value="FR">França</option>
             </select>
           </Field>
-          <Field label="Zona"><input value={form.zona || ''} onChange={set('zona')} className="inp" /></Field>
+          <Field label="Zona"><input value={form.zona || ''} onChange={set('zona')} className="inp" placeholder="Loiret, Isère…" /></Field>
+          <Field label="Ticket ref"><input value={form.ticket_ref || ''} onChange={set('ticket_ref')} className="inp" placeholder="C35…, SRO-BPI…" /></Field>
         </div>
 
         <Field label="Morada (alternativa às coordenadas)">
