@@ -1,4 +1,5 @@
 // Cliente HTTP fino para a API. Anexa o JWT de sessão e trata erros.
+import { isDemo, demoApi } from './demo.js';
 const BASE = import.meta.env.VITE_API_URL || '';
 
 let authToken = localStorage.getItem('fc_token') || null;
@@ -36,7 +37,7 @@ async function request(method, path, { body, isForm } = {}) {
   return data;
 }
 
-export const api = {
+const realApi = {
   // auth
   loginGoogle: (idToken) => request('POST', '/auth/google', { body: { idToken } }),
 
@@ -79,3 +80,11 @@ export const api = {
     URL.revokeObjectURL(a.href);
   },
 };
+
+// Em modo demonstração, encaminha cada método para a API simulada (sem backend).
+export const api = new Proxy(realApi, {
+  get(target, prop) {
+    if (isDemo() && typeof demoApi[prop] === 'function') return demoApi[prop];
+    return target[prop];
+  },
+});

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { api, setToken, getToken } from '../api.js';
+import { setDemo } from '../demo.js';
 
 const AuthContext = createContext(null);
 
@@ -46,7 +47,18 @@ export function AuthProvider({ children }) {
     return u;
   }, []);
 
+  // Entrar em modo demonstração (sem backend) com um role à escolha.
+  const loginDemo = useCallback((role = 'ADMIN') => {
+    setDemo(true);
+    const u = role === 'FIELD'
+      ? { id: 3, email: 'valter@empresa.pt', role: 'FIELD', team_id: 3 }
+      : { id: 1, email: 'demo@empresa.pt', role, team_id: null };
+    setUser(u);
+    return u;
+  }, []);
+
   const logout = useCallback(() => {
+    setDemo(false);
     setToken(null);
     setUser(null);
   }, []);
@@ -55,7 +67,7 @@ export function AuthProvider({ children }) {
   const isField = user && user.role === 'FIELD';
 
   return (
-    <AuthContext.Provider value={{ user, ready, loginWithGoogle, logout, isBackoffice, isField }}>
+    <AuthContext.Provider value={{ user, ready, loginWithGoogle, loginDemo, logout, isBackoffice, isField }}>
       {children}
     </AuthContext.Provider>
   );
