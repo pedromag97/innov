@@ -180,23 +180,33 @@ function UsersPanel({ users, teams, departments, onChange, setError }) {
 }
 
 function TeamsPanel({ teams, onChange, setError }) {
-  const [form, setForm] = useState({ name: '', country: 'PT' });
+  const [form, setForm] = useState({ id: null, name: '', country: 'PT' });
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
-  async function add(e) { e.preventDefault(); try { await api.createTeam(form); setForm({ name: '', country: 'PT' }); onChange(); } catch (err) { setError(err.message); } }
+  const reset = () => setForm({ id: null, name: '', country: 'PT' });
+  async function save(e) {
+    e.preventDefault();
+    try {
+      if (form.id) await api.updateTeam(form.id, { name: form.name, country: form.country });
+      else await api.createTeam({ name: form.name, country: form.country });
+      reset(); onChange();
+    } catch (err) { setError(err.message); }
+  }
   async function patch(id, b) { try { await api.updateTeam(id, b); onChange(); } catch (e) { setError(e.message); } }
   return (
     <div className="space-y-4">
-      <form onSubmit={add} className="rounded-xl border border-slate-200 bg-white p-4 flex flex-wrap gap-2 items-end">
+      <form onSubmit={save} className="rounded-xl border border-slate-200 bg-white p-4 flex flex-wrap gap-2 items-end">
         <label className="block flex-1 min-w-[180px]"><span className="lbl">Nome da equipa *</span><input required value={form.name} onChange={set('name')} className="adm-inp" placeholder="VALTER RIBEIRO" /></label>
         <label className="block"><span className="lbl">País</span><select value={form.country} onChange={set('country')} className="adm-inp"><option value="PT">Portugal</option><option value="FR">França</option></select></label>
-        <button className="rounded-lg bg-brand text-white px-4 py-2 text-sm font-medium hover:bg-brand-dark">Criar equipa</button>
+        <button className="rounded-lg bg-brand text-white px-4 py-2 text-sm font-medium hover:bg-brand-dark">{form.id ? 'Guardar' : 'Criar equipa'}</button>
+        {form.id && <button type="button" onClick={reset} className="text-xs text-slate-500 underline">cancelar</button>}
       </form>
       <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
         {teams.map((t) => (
           <div key={t.id} className={`flex items-center gap-3 p-3 ${t.active ? '' : 'opacity-50'}`}>
             <span className="font-medium text-slate-700">{t.name}</span>
             <span className="text-xs rounded bg-slate-100 px-2 py-0.5 text-slate-500">{t.country}</span>
-            <button onClick={() => patch(t.id, { active: !t.active })} className={`ml-auto rounded px-2 py-1 text-xs ${t.active ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>{t.active ? 'Ativa' : 'Inativa'}</button>
+            <button onClick={() => setForm({ id: t.id, name: t.name, country: t.country })} className="ml-auto text-xs text-brand underline">editar</button>
+            <button onClick={() => patch(t.id, { active: !t.active })} className={`rounded px-2 py-1 text-xs ${t.active ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>{t.active ? 'Ativa' : 'Inativa'}</button>
           </div>
         ))}
         {teams.length === 0 && <p className="p-3 text-sm text-slate-400">Sem equipas.</p>}
@@ -206,24 +216,35 @@ function TeamsPanel({ teams, onChange, setError }) {
 }
 
 function DepartmentsPanel({ departments, onChange, setError }) {
-  const [form, setForm] = useState({ code: '', name: '', country: 'FR' });
+  const [form, setForm] = useState({ id: null, code: '', name: '', country: 'FR' });
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
-  async function add(e) { e.preventDefault(); try { await api.createDepartment(form); setForm({ code: '', name: '', country: 'FR' }); onChange(); } catch (err) { setError(err.message); } }
+  const reset = () => setForm({ id: null, code: '', name: '', country: 'FR' });
+  async function save(e) {
+    e.preventDefault();
+    try {
+      const body = { code: form.code, name: form.name, country: form.country };
+      if (form.id) await api.updateDepartment(form.id, body);
+      else await api.createDepartment(body);
+      reset(); onChange();
+    } catch (err) { setError(err.message); }
+  }
   async function patch(id, b) { try { await api.updateDepartment(id, b); onChange(); } catch (e) { setError(e.message); } }
   return (
     <div className="space-y-4">
-      <form onSubmit={add} className="rounded-xl border border-slate-200 bg-white p-4 flex flex-wrap gap-2 items-end">
+      <form onSubmit={save} className="rounded-xl border border-slate-200 bg-white p-4 flex flex-wrap gap-2 items-end">
         <label className="block"><span className="lbl">Código *</span><input required value={form.code} onChange={set('code')} className="adm-inp" placeholder="ERT45" /></label>
         <label className="block flex-1 min-w-[140px]"><span className="lbl">Nome *</span><input required value={form.name} onChange={set('name')} className="adm-inp" placeholder="ERT 45" /></label>
         <label className="block"><span className="lbl">País</span><select value={form.country} onChange={set('country')} className="adm-inp"><option value="FR">França</option><option value="PT">Portugal</option></select></label>
-        <button className="rounded-lg bg-brand text-white px-4 py-2 text-sm font-medium hover:bg-brand-dark">Criar departamento</button>
+        <button className="rounded-lg bg-brand text-white px-4 py-2 text-sm font-medium hover:bg-brand-dark">{form.id ? 'Guardar' : 'Criar departamento'}</button>
+        {form.id && <button type="button" onClick={reset} className="text-xs text-slate-500 underline">cancelar</button>}
       </form>
       <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
         {departments.map((d) => (
           <div key={d.id} className={`flex items-center gap-3 p-3 ${d.active ? '' : 'opacity-50'}`}>
             <span className="font-medium text-slate-700">{d.name}</span>
             <span className="text-xs rounded bg-slate-100 px-2 py-0.5 text-slate-500">{d.code} · {d.country}</span>
-            <button onClick={() => patch(d.id, { active: !d.active })} className={`ml-auto rounded px-2 py-1 text-xs ${d.active ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>{d.active ? 'Ativo' : 'Inativo'}</button>
+            <button onClick={() => setForm({ id: d.id, code: d.code, name: d.name, country: d.country })} className="ml-auto text-xs text-brand underline">editar</button>
+            <button onClick={() => patch(d.id, { active: !d.active })} className={`rounded px-2 py-1 text-xs ${d.active ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>{d.active ? 'Ativo' : 'Inativo'}</button>
           </div>
         ))}
         {departments.length === 0 && <p className="p-3 text-sm text-slate-400">Sem departamentos.</p>}
