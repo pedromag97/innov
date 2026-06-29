@@ -58,8 +58,10 @@ export const api = {
   // teams / users
   listTeams: () => request('GET', '/teams'),
   createTeam: (body) => request('POST', '/teams', { body }),
+  updateTeam: (id, body) => request('PATCH', `/teams/${id}`, { body }),
   listUsers: () => request('GET', '/teams/users'),
   createUser: (body) => request('POST', '/teams/users', { body }),
+  updateUser: (id, body) => request('PATCH', `/teams/users/${id}`, { body }),
 
   // export — fetch autenticado + download do blob (anchor não envia o header).
   downloadExport: async (fmt, params = {}) => {

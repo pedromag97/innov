@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+**/.env
+**/.env.local
+server/service-account.json
+**/*.log
+.git
+.gitignore

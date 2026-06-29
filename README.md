@@ -100,7 +100,18 @@ Definidos uma única vez em `shared/states.js`. Frontend (pins/badges) e backend
 | `PENDENTE_RDV` | Pendente - RDV | roxo |
 | `PENDENTE_GC` | Pendente - GC | amarelo |
 
-## Setup local
+## Setup & Deploy
+
+> **Guia completo** (credenciais Google, Drive, deploy UE, smoke test E2E):
+> ver **[SETUP.md](SETUP.md)**.
+
+Arranque rápido em serviço único (API + frontend numa origem) com Docker:
+```bash
+# define VITE_GOOGLE_CLIENT_ID, GOOGLE_CLIENT_ID, JWT_SECRET, SEED_ADMIN_EMAIL num .env
+docker compose up --build      # http://localhost:4000
+```
+
+### Setup local (dev, dois servidores)
 
 ### 1. Base de dados
 ```bash

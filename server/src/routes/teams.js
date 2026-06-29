@@ -45,15 +45,59 @@ router.post('/users', requireAdmin, async (req, res) => {
   if (!['ADMIN', 'BACKOFFICE', 'FIELD'].includes(role)) {
     return res.status(400).json({ error: 'role inválido' });
   }
+  const { rows } = await query(
+    `INSERT INTO users (email, name, role, team_id) VALUES ($1,$2,$3,$4)
+     ON CONFLICT (email) DO UPDATE SET name=EXCLUDED.name, role=EXCLUDED.role, team_id=EXCLUDED.team_id
+     RETURNING id, email, name, role, team_id, active`,
+    [email, name || null, role, team_id || null]
+  );
+  res.status(201).json({ user: rows[0] });
+});
+
+// PATCH /api/teams/users/:id — editar role/equipa/ativo (admin).
+router.patch('/users/:id', requireAdmin, async (req, res) => {
+  const allowed = ['name', 'role', 'team_id', 'active'];
+  const b = req.body || {};
+  if (b.role && !['ADMIN', 'BACKOFFICE', 'FIELD'].includes(b.role)) {
+    return res.status(400).json({ error: 'role inválido' });
+  }
+  // Não permitir que o admin se auto-desative/desça de role (evita lockout).
+  if (String(req.user.uid) === String(req.params.id) && (b.active === false || (b.role && b.role !== 'ADMIN'))) {
+    return res.status(400).json({ error: 'Não podes alterar o teu próprio acesso de admin' });
+  }
+  const fields = allowed.filter((f) => f in b);
+  if (fields.length === 0) return res.status(400).json({ error: 'Nada para atualizar' });
+
+  const set = fields.map((f, i) => `${f} = $${i + 1}`);
+  const values = fields.map((f) => (f === 'team_id' ? (b[f] || null) : b[f]));
+  values.push(req.params.id);
+  const { rows } = await query(
+    `UPDATE users SET ${set.join(', ')} WHERE id = $${values.length}
+     RETURNING id, email, name, role, team_id, active`,
+    values
+  );
+  if (!rows[0]) return res.status(404).json({ error: 'Utilizador não encontrado' });
+  res.json({ user: rows[0] });
+});
+
+// PATCH /api/teams/:id — renomear/ativar equipa (backoffice).
+router.patch('/:id', requireBackoffice, async (req, res) => {
+  const allowed = ['name', 'country', 'active'];
+  const b = req.body || {};
+  const fields = allowed.filter((f) => f in b);
+  if (fields.length === 0) return res.status(400).json({ error: 'Nada para atualizar' });
+  const set = fields.map((f, i) => `${f} = $${i + 1}`);
+  const values = fields.map((f) => b[f]);
+  values.push(req.params.id);
   try {
     const { rows } = await query(
-      `INSERT INTO users (email, name, role, team_id) VALUES ($1,$2,$3,$4)
-       ON CONFLICT (email) DO UPDATE SET name=EXCLUDED.name, role=EXCLUDED.role, team_id=EXCLUDED.team_id
-       RETURNING id, email, name, role, team_id, active`,
-      [email, name || null, role, team_id || null]
+      `UPDATE teams SET ${set.join(', ')} WHERE id = $${values.length} RETURNING id, name, country, active`,
+      values
     );
-    res.status(201).json({ user: rows[0] });
+    if (!rows[0]) return res.status(404).json({ error: 'Equipa não encontrada' });
+    res.json({ team: rows[0] });
   } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'Já existe uma equipa com esse nome' });
     throw err;
   }
 });

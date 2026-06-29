@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import WorkForm from './pages/WorkForm.jsx';
 import FieldList from './pages/FieldList.jsx';
 import FieldReturn from './pages/FieldReturn.jsx';
+import Admin from './pages/Admin.jsx';
 
 function Protected({ children, allow }) {
   const { user, ready } = useAuth();
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/dashboard" element={<Protected allow={['ADMIN', 'BACKOFFICE']}><Dashboard /></Protected>} />
         <Route path="/trabalhos/novo" element={<Protected allow={['ADMIN', 'BACKOFFICE']}><WorkForm /></Protected>} />
         <Route path="/trabalhos/:id/editar" element={<Protected allow={['ADMIN', 'BACKOFFICE']}><WorkForm /></Protected>} />
+        <Route path="/admin" element={<Protected allow={['ADMIN']}><Admin /></Protected>} />
 
         {/* Equipa de terreno */}
         <Route path="/terreno" element={<Protected allow={['FIELD', 'ADMIN', 'BACKOFFICE']}><FieldList /></Protected>} />

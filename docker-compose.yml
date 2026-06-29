@@ -1,0 +1,54 @@
+# FibraCampo — stack local prod-like (app de serviço único + PostgreSQL).
+#   docker compose up --build
+# A app fica em http://localhost:4000
+#
+# Define VITE_GOOGLE_CLIENT_ID e GOOGLE_CLIENT_ID no teu .env (ao lado deste
+# ficheiro) ou no ambiente antes de correr.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: fibracampo
+      POSTGRES_USER: fibracampo
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fibracampo}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fibracampo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      args:
+        # Client ID do Google "baked" no build do frontend.
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+        VITE_API_URL: ""
+    environment:
+      PORT: 4000
+      DATABASE_URL: postgres://fibracampo:${DB_PASSWORD:-fibracampo}@db:5432/fibracampo
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      JWT_SECRET: ${JWT_SECRET:-troca-este-segredo}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@empresa.pt}
+      DRIVE_ROOT_FOLDER_ID: ${DRIVE_ROOT_FOLDER_ID:-}
+      GOOGLE_SERVICE_ACCOUNT_FILE: /run/secrets/service-account.json
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_BACKOFFICE_CHAT_ID: ${TELEGRAM_BACKOFFICE_CHAT_ID:-}
+    # Corre migração + seed e arranca a API.
+    command: sh -c "node src/migrate.js && node src/seed.js && node src/index.js"
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    # Para upload de fotos, descomenta e aponta para o teu JSON da service account:
+    # volumes:
+    #   - ./server/service-account.json:/run/secrets/service-account.json:ro
+
+volumes:
+  pgdata:

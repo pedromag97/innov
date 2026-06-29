@@ -5,6 +5,7 @@ const ROLE_LABEL = { ADMIN: 'Administrador', BACKOFFICE: 'Backoffice', FIELD: 'E
 
 export default function Layout() {
   const { user, logout, isBackoffice } = useAuth();
+  const isAdmin = user && user.role === 'ADMIN';
   const navigate = useNavigate();
 
   if (!user) return <Outlet />;
@@ -17,6 +18,7 @@ export default function Layout() {
           <nav className="flex items-center gap-4 text-sm">
             {isBackoffice && <Link to="/dashboard" className="hover:underline">Dashboard</Link>}
             <Link to="/terreno" className="hover:underline">Terreno</Link>
+            {isAdmin && <Link to="/admin" className="hover:underline">Admin</Link>}
             <span className="hidden sm:inline opacity-80">
               {user.email} · {ROLE_LABEL[user.role]}
             </span>
