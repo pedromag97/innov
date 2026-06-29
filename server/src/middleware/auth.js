@@ -16,10 +16,15 @@ export async function verifyGoogleIdToken(idToken) {
   return ticket.getPayload(); // { sub, email, email_verified, name, picture, ... }
 }
 
-// Emite o JWT de sessão da app (curto, com role + team).
-export function issueSessionToken(user) {
+// Emite o JWT de sessão da app (curto, com role + âmbito).
+// scope = { countries: [], departmentIds: [] } carregado da DB no login.
+export function issueSessionToken(user, scope = {}) {
   return jwt.sign(
-    { uid: user.id, email: user.email, role: user.role, team_id: user.team_id },
+    {
+      uid: user.id, email: user.email, role: user.role, team_id: user.team_id,
+      countries: scope.countries || user.countries || [],
+      departmentIds: scope.departmentIds || [],
+    },
     config.jwtSecret,
     { expiresIn: config.jwtExpiresIn }
   );
@@ -51,16 +56,24 @@ export function requireRole(...roles) {
 }
 
 // Atalhos de conveniência.
-export const requireBackoffice = requireRole('ADMIN', 'BACKOFFICE');
+// Quem pode gerir trabalhos (CRUD, sujeito a âmbito fino na rota).
+export const requireManageWorks = requireRole('ADMIN', 'GERENTE', 'BACKOFFICE', 'CDT');
+// Gestão de sistema (contas/equipas/departamentos).
 export const requireAdmin = requireRole('ADMIN');
 
 // Carrega o utilizador da DB pelo email (login). Atualiza google_sub/last_login.
 export async function findUserByEmail(email) {
   const { rows } = await query(
-    `SELECT id, email, name, role, team_id, active FROM users WHERE lower(email) = lower($1)`,
+    `SELECT id, email, name, role, team_id, countries, active FROM users WHERE lower(email) = lower($1)`,
     [email]
   );
   return rows[0] || null;
+}
+
+// Carrega o âmbito de um utilizador: países (já no user) + departamentos (N:N).
+export async function loadUserScope(userId) {
+  const { rows } = await query('SELECT department_id FROM user_departments WHERE user_id = $1', [userId]);
+  return { departmentIds: rows.map((r) => r.department_id) };
 }
 
 export async function markLogin(userId, googleSub) {

@@ -6,6 +6,7 @@ import { query, withTransaction } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isValidState } from '../lib/states.js';
 import { logHistory } from '../lib/history.js';
+import { canAccessWork } from '../lib/scope.js';
 import { uploadPhoto } from '../lib/drive.js';
 import { notifyBackofficeReturn } from '../lib/notify.js';
 
@@ -35,8 +36,8 @@ router.post('/:id/returns', upload.array('photos', 10), async (req, res) => {
       const work = works[0];
       if (!work) return { notFound: true };
 
-      // Equipa de terreno só pode retornar trabalhos da sua equipa.
-      if (req.user.role === 'FIELD' && work.team_id !== req.user.team_id) {
+      // Só pode submeter retorno em trabalhos do seu âmbito.
+      if (!canAccessWork(req.user, work)) {
         return { forbidden: true };
       }
 

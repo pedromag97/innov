@@ -10,12 +10,14 @@ export default function Dashboard() {
   const [works, setWorks] = useState([]);
   const [allWorks, setAllWorks] = useState([]); // sem filtros, p/ construir as listas de opções
   const [teams, setTeams] = useState([]);
-  const [filters, setFilters] = useState({ estado: '', team_id: '', country: '', zona: '', cdt: '', tipo_trabalho: '', q: '' });
+  const [departments, setDepartments] = useState([]);
+  const [filters, setFilters] = useState({ estado: '', team_id: '', country: '', department_id: '', zona: '', cdt: '', tipo_trabalho: '', q: '' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState('');
 
   useEffect(() => { api.listTeams().then((d) => setTeams(d.teams)).catch(() => {}); }, []);
+  useEffect(() => { api.listDepartments().then((d) => setDepartments(d.departments)).catch(() => {}); }, []);
   useEffect(() => { api.listWorks({}).then((d) => setAllWorks(d.works)).catch(() => {}); }, []);
 
   useEffect(() => {
@@ -92,6 +94,10 @@ export default function Dashboard() {
             <option value="PT">Portugal</option>
             <option value="FR">França</option>
           </select>
+          <select value={filters.department_id} onChange={set('department_id')} className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+            <option value="">Todos os departamentos</option>
+            {departments.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.country})</option>)}
+          </select>
           <select value={filters.zona} onChange={set('zona')} className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
             <option value="">Todas as zonas</option>
             {zonas.map((z) => <option key={z} value={z}>{z}</option>)}
@@ -136,7 +142,7 @@ export default function Dashboard() {
                   {[w.commune || w.zona, w.tipo_trabalho].filter(Boolean).join(' · ')}
                 </span>
                 <span className="block text-xs text-slate-400">
-                  {[w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
+                  {[w.department_code, w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
                 </span>
               </span>
               <StateBadge code={w.estado} />

@@ -1,7 +1,8 @@
-// Rotas de equipas e utilizadores (gestão pelo admin).
+// Rotas de equipas e utilizadores (gestão pelo ADMIN).
 import { Router } from 'express';
-import { query } from '../db.js';
-import { requireAuth, requireBackoffice, requireAdmin } from '../middleware/auth.js';
+import { query, withTransaction } from '../db.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { isValidRole } from '../lib/scope.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -12,8 +13,8 @@ router.get('/', async (_req, res) => {
   res.json({ teams: rows });
 });
 
-// POST /api/teams — criar equipa (backoffice).
-router.post('/', requireBackoffice, async (req, res) => {
+// POST /api/teams — criar equipa (admin).
+router.post('/', requireAdmin, async (req, res) => {
   const { name, country } = req.body || {};
   if (!name) return res.status(400).json({ error: 'name obrigatório' });
   try {
@@ -28,60 +29,8 @@ router.post('/', requireBackoffice, async (req, res) => {
   }
 });
 
-// ─── Utilizadores (admin) ───────────────────────────────────────────────
-// GET /api/teams/users — lista utilizadores.
-router.get('/users', requireAdmin, async (_req, res) => {
-  const { rows } = await query(
-    `SELECT u.id, u.email, u.name, u.role, u.team_id, u.active, t.name AS team_name
-       FROM users u LEFT JOIN teams t ON t.id = u.team_id ORDER BY u.email`
-  );
-  res.json({ users: rows });
-});
-
-// POST /api/teams/users — provisionar utilizador (allow-list de login).
-router.post('/users', requireAdmin, async (req, res) => {
-  const { email, name, role, team_id } = req.body || {};
-  if (!email || !role) return res.status(400).json({ error: 'email e role obrigatórios' });
-  if (!['ADMIN', 'BACKOFFICE', 'FIELD'].includes(role)) {
-    return res.status(400).json({ error: 'role inválido' });
-  }
-  const { rows } = await query(
-    `INSERT INTO users (email, name, role, team_id) VALUES ($1,$2,$3,$4)
-     ON CONFLICT (email) DO UPDATE SET name=EXCLUDED.name, role=EXCLUDED.role, team_id=EXCLUDED.team_id
-     RETURNING id, email, name, role, team_id, active`,
-    [email, name || null, role, team_id || null]
-  );
-  res.status(201).json({ user: rows[0] });
-});
-
-// PATCH /api/teams/users/:id — editar role/equipa/ativo (admin).
-router.patch('/users/:id', requireAdmin, async (req, res) => {
-  const allowed = ['name', 'role', 'team_id', 'active'];
-  const b = req.body || {};
-  if (b.role && !['ADMIN', 'BACKOFFICE', 'FIELD'].includes(b.role)) {
-    return res.status(400).json({ error: 'role inválido' });
-  }
-  // Não permitir que o admin se auto-desative/desça de role (evita lockout).
-  if (String(req.user.uid) === String(req.params.id) && (b.active === false || (b.role && b.role !== 'ADMIN'))) {
-    return res.status(400).json({ error: 'Não podes alterar o teu próprio acesso de admin' });
-  }
-  const fields = allowed.filter((f) => f in b);
-  if (fields.length === 0) return res.status(400).json({ error: 'Nada para atualizar' });
-
-  const set = fields.map((f, i) => `${f} = $${i + 1}`);
-  const values = fields.map((f) => (f === 'team_id' ? (b[f] || null) : b[f]));
-  values.push(req.params.id);
-  const { rows } = await query(
-    `UPDATE users SET ${set.join(', ')} WHERE id = $${values.length}
-     RETURNING id, email, name, role, team_id, active`,
-    values
-  );
-  if (!rows[0]) return res.status(404).json({ error: 'Utilizador não encontrado' });
-  res.json({ user: rows[0] });
-});
-
-// PATCH /api/teams/:id — renomear/ativar equipa (backoffice).
-router.patch('/:id', requireBackoffice, async (req, res) => {
+// PATCH /api/teams/:id — renomear/ativar equipa (admin).
+router.patch('/:id', requireAdmin, async (req, res) => {
   const allowed = ['name', 'country', 'active'];
   const b = req.body || {};
   const fields = allowed.filter((f) => f in b);
@@ -100,6 +49,81 @@ router.patch('/:id', requireBackoffice, async (req, res) => {
     if (err.code === '23505') return res.status(409).json({ error: 'Já existe uma equipa com esse nome' });
     throw err;
   }
+});
+
+// ─── Utilizadores (admin) ───────────────────────────────────────────────
+const USERS_SELECT = `
+  SELECT u.id, u.email, u.name, u.role, u.team_id, u.countries, u.active, t.name AS team_name,
+         COALESCE(array_agg(ud.department_id) FILTER (WHERE ud.department_id IS NOT NULL), '{}') AS department_ids
+    FROM users u
+    LEFT JOIN teams t ON t.id = u.team_id
+    LEFT JOIN user_departments ud ON ud.user_id = u.id`;
+
+// Sincroniza os departamentos atribuídos a um utilizador (substitui o conjunto).
+async function syncDepartments(client, userId, departmentIds) {
+  await client.query('DELETE FROM user_departments WHERE user_id = $1', [userId]);
+  for (const did of departmentIds) {
+    await client.query(
+      'INSERT INTO user_departments (user_id, department_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+      [userId, did]
+    );
+  }
+}
+
+// GET /api/teams/users — lista utilizadores com âmbito.
+router.get('/users', requireAdmin, async (_req, res) => {
+  const { rows } = await query(`${USERS_SELECT} GROUP BY u.id, t.name ORDER BY u.email`);
+  res.json({ users: rows });
+});
+
+// POST /api/teams/users — provisionar utilizador (allow-list de login).
+router.post('/users', requireAdmin, async (req, res) => {
+  const { email, name, role, team_id, countries, department_ids } = req.body || {};
+  if (!email || !role) return res.status(400).json({ error: 'email e role obrigatórios' });
+  if (!isValidRole(role)) return res.status(400).json({ error: 'role inválido' });
+
+  const user = await withTransaction(async (client) => {
+    const { rows } = await client.query(
+      `INSERT INTO users (email, name, role, team_id, countries) VALUES ($1,$2,$3,$4,$5)
+       ON CONFLICT (email) DO UPDATE SET name=EXCLUDED.name, role=EXCLUDED.role,
+         team_id=EXCLUDED.team_id, countries=EXCLUDED.countries
+       RETURNING id`,
+      [email, name || null, role, team_id || null, countries || []]
+    );
+    await syncDepartments(client, rows[0].id, department_ids || []);
+    return rows[0];
+  });
+  const { rows } = await query(`${USERS_SELECT} WHERE u.id = $1 GROUP BY u.id, t.name`, [user.id]);
+  res.status(201).json({ user: rows[0] });
+});
+
+// PATCH /api/teams/users/:id — editar role/equipa/países/departamentos/ativo (admin).
+router.patch('/users/:id', requireAdmin, async (req, res) => {
+  const b = req.body || {};
+  if (b.role && !isValidRole(b.role)) return res.status(400).json({ error: 'role inválido' });
+  // Evitar auto-lockout do admin.
+  if (String(req.user.uid) === String(req.params.id) && (b.active === false || (b.role && b.role !== 'ADMIN'))) {
+    return res.status(400).json({ error: 'Não podes alterar o teu próprio acesso de admin' });
+  }
+
+  const cols = ['name', 'role', 'team_id', 'countries', 'active'];
+  const fields = cols.filter((f) => f in b);
+  const updated = await withTransaction(async (client) => {
+    if (fields.length) {
+      const set = fields.map((f, i) => `${f} = $${i + 1}`);
+      const values = fields.map((f) => (f === 'team_id' ? (b[f] || null) : b[f]));
+      values.push(req.params.id);
+      const { rows } = await client.query(
+        `UPDATE users SET ${set.join(', ')} WHERE id = $${values.length} RETURNING id`, values
+      );
+      if (!rows[0]) return null;
+    }
+    if ('department_ids' in b) await syncDepartments(client, req.params.id, b.department_ids || []);
+    return req.params.id;
+  });
+  if (!updated) return res.status(404).json({ error: 'Utilizador não encontrado' });
+  const { rows } = await query(`${USERS_SELECT} WHERE u.id = $1 GROUP BY u.id, t.name`, [req.params.id]);
+  res.json({ user: rows[0] });
 });
 
 export default router;

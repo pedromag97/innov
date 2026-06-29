@@ -4,6 +4,7 @@ import {
   verifyGoogleIdToken,
   issueSessionToken,
   findUserByEmail,
+  loadUserScope,
   markLogin,
   requireAuth,
 } from '../middleware/auth.js';
@@ -33,10 +34,14 @@ router.post('/google', async (req, res) => {
   }
 
   await markLogin(user.id, payload.sub);
-  const token = issueSessionToken(user);
+  const scope = await loadUserScope(user.id);
+  const token = issueSessionToken(user, scope);
   res.json({
     token,
-    user: { id: user.id, email: user.email, name: user.name || payload.name, role: user.role, team_id: user.team_id },
+    user: {
+      id: user.id, email: user.email, name: user.name || payload.name, role: user.role,
+      team_id: user.team_id, countries: user.countries || [], departmentIds: scope.departmentIds,
+    },
   });
 });
 

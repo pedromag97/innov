@@ -1,16 +1,11 @@
 -- Innov — modelo de dados (PostgreSQL)
 -- Idempotente: pode correr várias vezes (CREATE TABLE IF NOT EXISTS).
 
--- ─────────────────────────────────────────────────────────────────────────
--- Enums
--- ─────────────────────────────────────────────────────────────────────────
-DO $$ BEGIN
-  CREATE TYPE user_role AS ENUM ('ADMIN', 'BACKOFFICE', 'FIELD');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
--- Estados dos trabalhos. Mantido sincronizado com shared/states.js.
--- Texto livre validado na aplicação (não enum) para permitir adicionar estados
--- sem migração de DB — a fonte de verdade é shared/states.js.
+-- Papéis (role) e estados são TEXT validado na aplicação (não enum), para evoluir
+-- sem migração de DB. Papéis: ADMIN, GERENTE, BACKOFFICE, CDT, TERRENO.
+-- Âmbitos de acesso:
+--   ADMIN/GERENTE -> tudo. BACKOFFICE -> países atribuídos (users.countries).
+--   CDT -> departamentos atribuídos (user_departments). TERRENO -> a sua equipa.
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- teams — equipas de terreno
@@ -24,18 +19,40 @@ CREATE TABLE IF NOT EXISTS teams (
 );
 
 -- ─────────────────────────────────────────────────────────────────────────
+-- departments — departamentos/projetos por país (ex.: FR: ERT 45/38/64)
+-- ─────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS departments (
+  id          SERIAL PRIMARY KEY,
+  code        TEXT NOT NULL UNIQUE,         -- 'ERT45', 'ERT38', 'ERT64'
+  name        TEXT NOT NULL,                -- 'ERT 45'
+  country     TEXT NOT NULL DEFAULT 'FR',   -- 'PT' | 'FR'
+  active      BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ─────────────────────────────────────────────────────────────────────────
 -- users — provisionados por admin; login Google só passa se email existir aqui
 -- ─────────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
   id           SERIAL PRIMARY KEY,
   email        TEXT NOT NULL UNIQUE,
   name         TEXT,
-  role         user_role NOT NULL DEFAULT 'FIELD',
-  team_id      INTEGER REFERENCES teams(id) ON DELETE SET NULL,  -- obrigatório p/ FIELD na app
+  role         TEXT NOT NULL DEFAULT 'TERRENO',  -- ADMIN|GERENTE|BACKOFFICE|CDT|TERRENO
+  team_id      INTEGER REFERENCES teams(id) ON DELETE SET NULL,  -- p/ TERRENO
+  countries    TEXT[] NOT NULL DEFAULT '{}',     -- âmbito do BACKOFFICE: {'PT','FR'}
   google_sub   TEXT UNIQUE,                 -- preenchido no 1º login (Google subject id)
   active       BOOLEAN NOT NULL DEFAULT TRUE,
   last_login   TIMESTAMPTZ,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- user_departments — departamentos atribuídos a um CDT (N:N)
+-- ─────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS user_departments (
+  user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  department_id INTEGER NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+  PRIMARY KEY (user_id, department_id)
 );
 
 -- ─────────────────────────────────────────────────────────────────────────
@@ -61,7 +78,8 @@ CREATE TABLE IF NOT EXISTS works (
   -- Classificação
   estado        TEXT NOT NULL DEFAULT 'PENDENTE',   -- código de shared/states.js
   country       TEXT NOT NULL DEFAULT 'PT',          -- 'PT' | 'FR'
-  zona          TEXT,                                -- zona/projeto (Loiret, Isère...) — filtro
+  zona          TEXT,                                -- zona/projeto (texto livre) — filtro
+  department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,  -- âmbito do CDT
   team_id       INTEGER REFERENCES teams(id) ON DELETE SET NULL,
   -- Importação idempotente
   source        TEXT,                         -- folha/origem de import

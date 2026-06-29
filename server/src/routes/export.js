@@ -2,15 +2,16 @@
 import { Router } from 'express';
 import AdmZip from 'adm-zip';
 import { query } from '../db.js';
-import { requireAuth, requireBackoffice } from '../middleware/auth.js';
+import { requireAuth, requireManageWorks } from '../middleware/auth.js';
 import { buildKml } from '../lib/kml.js';
+import { worksScope } from '../lib/scope.js';
 
 const router = Router();
-router.use(requireAuth, requireBackoffice);
+router.use(requireAuth, requireManageWorks);
 
-// Aplica os mesmos filtros do dashboard (estado/team/country/zona) à query.
+// Aplica os mesmos filtros do dashboard + o âmbito do utilizador.
 async function fetchWorks(req) {
-  const { estado, team_id, country, zona } = req.query;
+  const { estado, team_id, country, zona, department_id } = req.query;
   const where = [];
   const params = [];
   const add = (col, val) => { params.push(val); where.push(`w.${col} = $${params.length}`); };
@@ -18,6 +19,10 @@ async function fetchWorks(req) {
   if (team_id) add('team_id', team_id);
   if (country) add('country', country);
   if (zona) add('zona', zona);
+  if (department_id) add('department_id', department_id);
+
+  const scope = worksScope(req.user, params.length);
+  if (scope.clause) { where.push(scope.clause); params.push(...scope.params); }
 
   const { rows } = await query(
     `SELECT w.*, t.name AS team_name FROM works w

@@ -9,7 +9,7 @@ const EMPTY = {
   id_ordem: '', denominacao: '', descricao: '',
   pm: '', commune: '', tipo_trabalho: '', cdt: '', tarefas: '', ticket_ref: '',
   lat: null, lng: null, morada: '',
-  estado: 'PENDENTE', country: 'PT', zona: '', team_id: '',
+  estado: 'PENDENTE', country: 'PT', zona: '', department_id: '', team_id: '',
 };
 
 export default function WorkForm() {
@@ -19,17 +19,19 @@ export default function WorkForm() {
 
   const [form, setForm] = useState(EMPTY);
   const [teams, setTeams] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [history, setHistory] = useState([]);
   const [returns, setReturns] = useState([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { api.listTeams().then((d) => setTeams(d.teams)).catch(() => {}); }, []);
+  useEffect(() => { api.listDepartments().then((d) => setDepartments(d.departments)).catch(() => {}); }, []);
 
   useEffect(() => {
     if (!isEdit) return;
     api.getWork(id).then((d) => setForm({
-      ...EMPTY, ...d.work, team_id: d.work.team_id || '',
+      ...EMPTY, ...d.work, team_id: d.work.team_id || '', department_id: d.work.department_id || '',
     })).catch((e) => setError(e.message));
     api.getWorkHistory(id).then((d) => setHistory(d.history)).catch(() => {});
     api.getWorkReturns(id).then((d) => setReturns(d.returns)).catch(() => {});
@@ -47,6 +49,7 @@ export default function WorkForm() {
       lat: form.lat === '' ? null : form.lat,
       lng: form.lng === '' ? null : form.lng,
       team_id: form.team_id || null,
+      department_id: form.department_id || null,
     };
     try {
       if (isEdit) await api.updateWork(id, payload);
@@ -102,6 +105,12 @@ export default function WorkForm() {
             <select value={form.country} onChange={set('country')} className="inp">
               <option value="PT">Portugal</option>
               <option value="FR">França</option>
+            </select>
+          </Field>
+          <Field label="Departamento">
+            <select value={form.department_id || ''} onChange={set('department_id')} className="inp">
+              <option value="">— sem departamento —</option>
+              {departments.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.country})</option>)}
             </select>
           </Field>
           <Field label="Zona"><input value={form.zona || ''} onChange={set('zona')} className="inp" placeholder="Loiret, Isère…" /></Field>

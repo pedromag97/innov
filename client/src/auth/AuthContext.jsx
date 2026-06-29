@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { api, setToken, getToken } from '../api.js';
 import { setDemo } from '../demo.js';
+import { canManageWorks } from '../roles.js';
 
 const AuthContext = createContext(null);
 
@@ -25,7 +26,10 @@ export function AuthProvider({ children }) {
       const payload = decodeJwt(token);
       // exp em segundos; verifica validade.
       if (payload && (!payload.exp || payload.exp * 1000 > Date.now())) {
-        setUser({ id: payload.uid, email: payload.email, role: payload.role, team_id: payload.team_id });
+        setUser({
+          id: payload.uid, email: payload.email, role: payload.role, team_id: payload.team_id,
+          countries: payload.countries || [], departmentIds: payload.departmentIds || [],
+        });
       } else {
         setToken(null);
       }
@@ -48,26 +52,34 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Entrar em modo demonstração (sem backend) com um role à escolha.
-  const loginDemo = useCallback((role = 'ADMIN') => {
+  const loginDemo = useCallback((role = 'GERENTE') => {
     setDemo(true);
-    const u = role === 'FIELD'
-      ? { id: 3, email: 'valter@empresa.pt', role: 'FIELD', team_id: 3 }
-      : { id: 1, email: 'demo@empresa.pt', role, team_id: null };
+    const presets = {
+      ADMIN:      { id: 1, email: 'admin@empresa.pt', role: 'ADMIN', team_id: null, countries: ['PT', 'FR'], departmentIds: [] },
+      GERENTE:    { id: 2, email: 'gerente@empresa.pt', role: 'GERENTE', team_id: null, countries: ['PT', 'FR'], departmentIds: [] },
+      BACKOFFICE: { id: 3, email: 'backoffice.fr@empresa.pt', role: 'BACKOFFICE', team_id: null, countries: ['FR'], departmentIds: [] },
+      CDT:        { id: 4, email: 'cdt.ert45@empresa.pt', role: 'CDT', team_id: null, countries: [], departmentIds: [1] },
+      TERRENO:    { id: 5, email: 'valter@empresa.pt', role: 'TERRENO', team_id: 3, countries: [], departmentIds: [] },
+    };
+    const u = presets[role] || presets.GERENTE;
+    localStorage.setItem('fc_demo_user', JSON.stringify(u)); // p/ a API simulada aplicar âmbito
     setUser(u);
     return u;
   }, []);
 
   const logout = useCallback(() => {
     setDemo(false);
+    localStorage.removeItem('fc_demo_user');
     setToken(null);
     setUser(null);
   }, []);
 
-  const isBackoffice = user && (user.role === 'ADMIN' || user.role === 'BACKOFFICE');
-  const isField = user && user.role === 'FIELD';
+  const canManage = !!user && canManageWorks(user.role);
+  const isAdmin = !!user && user.role === 'ADMIN';
+  const isTerreno = !!user && user.role === 'TERRENO';
 
   return (
-    <AuthContext.Provider value={{ user, ready, loginWithGoogle, loginDemo, logout, isBackoffice, isField }}>
+    <AuthContext.Provider value={{ user, ready, loginWithGoogle, loginDemo, logout, canManage, isAdmin, isTerreno }}>
       {children}
     </AuthContext.Provider>
   );

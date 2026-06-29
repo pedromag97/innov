@@ -10,7 +10,7 @@ export default function Login() {
 
   function enterDemo(role) {
     loginDemo(role);
-    navigate(role === 'FIELD' ? '/terreno' : '/dashboard', { replace: true });
+    navigate(role === 'TERRENO' ? '/terreno' : '/dashboard', { replace: true });
   }
   const btnRef = useRef(null);
   const [error, setError] = useState('');
@@ -68,15 +68,27 @@ export default function Login() {
         {/* Modo demonstração — só em dev ou com VITE_ALLOW_DEMO=1 (escondido em produção). */}
         {(import.meta.env.DEV || import.meta.env.VITE_ALLOW_DEMO === '1') && (
         <div className="mt-6 border-t border-slate-100 pt-4">
-          <p className="text-xs font-medium text-slate-400 mb-2">Ver demonstração (dados de exemplo)</p>
-          <div className="flex gap-2">
-            <button onClick={() => enterDemo('ADMIN')}
-              className="flex-1 rounded-lg bg-brand text-white px-3 py-2 text-sm font-medium hover:bg-brand-dark">
-              Backoffice
+          <p className="text-xs font-medium text-slate-400 mb-2">Ver demonstração — entrar como:</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={() => enterDemo('GERENTE')}
+              className="rounded-lg bg-brand text-white px-3 py-2 text-sm font-medium hover:bg-brand-dark">
+              Gerente (PT+FR)
             </button>
-            <button onClick={() => enterDemo('FIELD')}
-              className="flex-1 rounded-lg border border-brand text-brand px-3 py-2 text-sm font-medium hover:bg-blue-50">
-              Equipa Terreno
+            <button onClick={() => enterDemo('BACKOFFICE')}
+              className="rounded-lg border border-brand text-brand px-3 py-2 text-sm font-medium hover:bg-blue-50">
+              Backoffice (FR)
+            </button>
+            <button onClick={() => enterDemo('CDT')}
+              className="rounded-lg border border-brand text-brand px-3 py-2 text-sm font-medium hover:bg-blue-50">
+              CDT (ERT 45)
+            </button>
+            <button onClick={() => enterDemo('TERRENO')}
+              className="rounded-lg border border-brand text-brand px-3 py-2 text-sm font-medium hover:bg-blue-50">
+              Terreno
+            </button>
+            <button onClick={() => enterDemo('ADMIN')}
+              className="col-span-2 rounded-lg border border-slate-300 text-slate-600 px-3 py-2 text-sm font-medium hover:bg-slate-50">
+              Admin (gestão de contas/departamentos)
             </button>
           </div>
         </div>

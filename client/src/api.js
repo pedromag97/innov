@@ -64,6 +64,11 @@ const realApi = {
   createUser: (body) => request('POST', '/teams/users', { body }),
   updateUser: (id, body) => request('PATCH', `/teams/users/${id}`, { body }),
 
+  // departments
+  listDepartments: () => request('GET', '/departments'),
+  createDepartment: (body) => request('POST', '/departments', { body }),
+  updateDepartment: (id, body) => request('PATCH', `/departments/${id}`, { body }),
+
   // export — fetch autenticado + download do blob (anchor não envia o header).
   downloadExport: async (fmt, params = {}) => {
     const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null && v !== ''));

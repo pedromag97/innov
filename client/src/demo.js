@@ -18,11 +18,31 @@ const teams = [
   { id: 4, name: 'B - LUIS BESSA', country: 'FR', active: true },
 ];
 
-const users = [
-  { id: 1, email: 'admin@empresa.pt', name: 'Administrador', role: 'ADMIN', team_id: null, active: true, team_name: null },
-  { id: 2, email: 'backoffice@empresa.pt', name: 'Backoffice', role: 'BACKOFFICE', team_id: null, active: true, team_name: null },
-  { id: 3, email: 'valter@empresa.pt', name: 'Valter Ribeiro', role: 'FIELD', team_id: 3, active: true, team_name: 'VALTER RIBEIRO' },
+const departments = [
+  { id: 1, code: 'ERT45', name: 'ERT 45', country: 'FR', active: true },
+  { id: 2, code: 'ERT38', name: 'ERT 38', country: 'FR', active: true },
+  { id: 3, code: 'ERT64', name: 'ERT 64', country: 'FR', active: true },
 ];
+const deptByCode = Object.fromEntries(departments.map((d) => [d.code, d]));
+// Zona -> departamento (Loiret = ERT45, Isère = ERT38).
+function deptForZona(z) {
+  const m = { loiret: 1, 'isère': 2, isere: 2 };
+  return z ? (m[z.toLowerCase()] || null) : null;
+}
+
+const users = [
+  { id: 1, email: 'admin@empresa.pt', name: 'Administrador', role: 'ADMIN', team_id: null, countries: ['PT', 'FR'], department_ids: [], active: true, team_name: null },
+  { id: 2, email: 'gerente@empresa.pt', name: 'Gerente', role: 'GERENTE', team_id: null, countries: ['PT', 'FR'], department_ids: [], active: true, team_name: null },
+  { id: 3, email: 'backoffice.fr@empresa.pt', name: 'Backoffice França', role: 'BACKOFFICE', team_id: null, countries: ['FR'], department_ids: [], active: true, team_name: null },
+  { id: 4, email: 'cdt.ert45@empresa.pt', name: 'CDT ERT 45', role: 'CDT', team_id: null, countries: [], department_ids: [1], active: true, team_name: null },
+  { id: 5, email: 'valter@empresa.pt', name: 'Valter Ribeiro', role: 'TERRENO', team_id: 3, countries: [], department_ids: [], active: true, team_name: 'VALTER RIBEIRO' },
+];
+
+// Utilizador atual do modo demo (gravado pelo AuthContext) — p/ aplicar âmbito.
+function getDemoUser() {
+  try { return JSON.parse(localStorage.getItem('fc_demo_user')) || { role: 'GERENTE' }; }
+  catch { return { role: 'GERENTE' }; }
+}
 
 // Trabalhos de exemplo — mistura PT + França real (Loiret/Isère), estados variados.
 let works = [
@@ -40,16 +60,37 @@ let works = [
   { id: 12, id_ordem: 'LORRIS_NEIGE', denominacao: 'Lorris — Tirage', pm: 'PM2915', commune: 'LORRIS', tipo_trabalho: 'DEPLOIMENT - PONTAS', cdt: 'Emilie Chassinat', tarefas: 'TIRAGE SOUT 1700m', estado: 'PENDENTE_NEVE', lat: 47.8869, lng: 2.5103, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
 ];
 
+// Anota cada trabalho com o departamento (via zona) — usado no âmbito do CDT.
+works.forEach((w) => {
+  w.department_id = deptForZona(w.zona);
+  const d = departments.find((x) => x.id === w.department_id);
+  w.department_code = d ? d.code : null;
+  w.department_name = d ? d.name : null;
+});
+
 let nextId = 100;
 const delay = (v) => new Promise((r) => setTimeout(() => r(v), 120));
 const clone = (x) => JSON.parse(JSON.stringify(x));
 
+// Âmbito por papel (espelha o backend).
+function inScope(w, user) {
+  const r = user.role;
+  if (r === 'ADMIN' || r === 'GERENTE') return true;
+  if (r === 'BACKOFFICE') return (user.countries || []).includes(w.country);
+  if (r === 'CDT') return (user.departmentIds || user.department_ids || []).includes(w.department_id);
+  if (r === 'TERRENO') return String(w.team_id) === String(user.team_id);
+  return false;
+}
+
 function filterWorks(params = {}) {
+  const user = getDemoUser();
   return works.filter((w) => {
+    if (!inScope(w, user)) return false;
     if (params.estado && w.estado !== params.estado) return false;
     if (params.team_id && String(w.team_id) !== String(params.team_id)) return false;
     if (params.country && w.country !== params.country) return false;
     if (params.zona && w.zona !== params.zona) return false;
+    if (params.department_id && String(w.department_id) !== String(params.department_id)) return false;
     if (params.cdt && w.cdt !== params.cdt) return false;
     if (params.tipo_trabalho && w.tipo_trabalho !== params.tipo_trabalho) return false;
     if (params.q) {
@@ -82,6 +123,10 @@ export const demoApi = {
   updateWork: (id, body) => { const w = works.find((x)=>String(x.id)===String(id)); Object.assign(w, body, { team_name: teams.find((t)=>String(t.id)===String(body.team_id))?.name ?? w.team_name }); return delay({ work: clone(w) }); },
   deleteWork: (id) => { works = works.filter((w)=>String(w.id)!==String(id)); return delay({ ok: true }); },
   submitReturn: (id, fd) => { const w = works.find((x)=>String(x.id)===String(id)); const ns = fd.get ? fd.get('new_estado') : null; if (w && ns) w.estado = ns; return delay({ return: { id: nextId++ } }); },
+
+  listDepartments: () => delay({ departments: clone(departments) }),
+  createDepartment: (b) => { const d = { ...b, id: nextId++, active: true }; departments.push(d); return delay({ department: d }); },
+  updateDepartment: (id, b) => { const d = departments.find((x) => String(x.id) === String(id)); Object.assign(d, b); return delay({ department: clone(d) }); },
 
   listTeams: () => delay({ teams: clone(teams) }),
   createTeam: (b) => { const t = { ...b, id: nextId++, active: true }; teams.push(t); return delay({ team: t }); },

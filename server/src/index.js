@@ -10,6 +10,7 @@ import authRoutes from './routes/auth.js';
 import worksRoutes from './routes/works.js';
 import returnsRoutes from './routes/returns.js';
 import teamsRoutes from './routes/teams.js';
+import departmentsRoutes from './routes/departments.js';
 import exportRoutes from './routes/export.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -28,6 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/works', worksRoutes);
 app.use('/api/works', returnsRoutes);   // POST /api/works/:id/returns
 app.use('/api/teams', teamsRoutes);
+app.use('/api/departments', departmentsRoutes);
 app.use('/api/export', exportRoutes);
 
 // 404 JSON para rotas /api inexistentes.

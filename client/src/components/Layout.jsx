@@ -1,11 +1,9 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
-
-const ROLE_LABEL = { ADMIN: 'Administrador', BACKOFFICE: 'Backoffice', FIELD: 'Equipa Terreno' };
+import { ROLE_LABELS } from '../roles.js';
 
 export default function Layout() {
-  const { user, logout, isBackoffice } = useAuth();
-  const isAdmin = user && user.role === 'ADMIN';
+  const { user, logout, canManage, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   if (!user) return <Outlet />;
@@ -16,11 +14,11 @@ export default function Layout() {
         <div className="mx-auto max-w-7xl px-4 h-14 flex items-center justify-between">
           <Link to="/" className="font-bold text-lg tracking-tight">Innov</Link>
           <nav className="flex items-center gap-4 text-sm">
-            {isBackoffice && <Link to="/dashboard" className="hover:underline">Dashboard</Link>}
+            {canManage && <Link to="/dashboard" className="hover:underline">Dashboard</Link>}
             <Link to="/terreno" className="hover:underline">Terreno</Link>
             {isAdmin && <Link to="/admin" className="hover:underline">Admin</Link>}
             <span className="hidden sm:inline opacity-80">
-              {user.email} · {ROLE_LABEL[user.role]}
+              {user.email} · {ROLE_LABELS[user.role]}
             </span>
             <button
               onClick={() => { logout(); navigate('/login'); }}
