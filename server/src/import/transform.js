@@ -50,13 +50,19 @@ export function transformRow(row, cols, profile) {
   // Linha sem identidade nem localização -> ignorar (linhas-legenda, vazias).
   if (!denominacao && !pm && !commune && !morada) return { skip: 'linha vazia' };
 
-  // Estado: primeiro campo de stateFrom com valor.
-  let rawState = '';
+  // Estado: das colunas candidatas (stateFrom), escolhe a PRIMEIRA que produz um
+  // estado RECONHECIDO. As folhas variam — a mesma posição ora tem o estado ora
+  // a data de envio. Se nenhuma casar, usa a 1ª não-vazia (cai em PENDENTE).
+  let st = null, firstNonEmpty = null;
   for (const f of profile.stateFrom) {
     const v = get(f);
-    if (v) { rawState = v; break; }
+    if (!v) continue;
+    if (firstNonEmpty === null) firstNonEmpty = v;
+    const d = mapStateDetailed(v);
+    if (d.matched) { st = d; break; }
   }
-  const st = mapStateDetailed(rawState);
+  if (!st) st = mapStateDetailed(firstNonEmpty || '');
+  const rawState = st.raw;
 
   const data_entrega = get('data_entrega');
   const rec = {

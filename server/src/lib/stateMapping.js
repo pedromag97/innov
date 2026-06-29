@@ -30,7 +30,9 @@ const RULES = [
   [/\bnok\b/, 'NOK'],
   [/a fazer|a faire|att a fazer/, 'A_FAZER'],
   [/feito|\bfait\b|termine|^ok\b|^ok-|^ok /, 'FEITO'],
-  [/pendente|pending|attente|en attente/, 'PENDENTE'],
+  // Agendamento / espera / bloqueio = pendente (texto livre comum no STATUS).
+  [/aguarda|attente|en attente|odeon|bloque|bloquead|em espera|en espera|\bespera\b|novo estudo|nouvelle etude/, 'PENDENTE'],
+  [/pendente|pending/, 'PENDENTE'],
 ];
 
 // Mapeia um valor bruto -> código canónico. `fallback` quando nada casa (default PENDENTE).
