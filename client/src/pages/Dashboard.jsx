@@ -42,6 +42,18 @@ export default function Dashboard() {
   const cdts = useMemo(() => distinct('cdt'), [allWorks]);
   const tipos = useMemo(() => distinct('tipo_trabalho'), [allWorks]);
 
+  // Agrupa os trabalhos por departamento (PT/sem-dept caem em grupos próprios).
+  const grouped = useMemo(() => {
+    const g = new Map();
+    for (const w of works) {
+      const key = w.department_name || (w.country === 'PT' ? 'Portugal' : 'Sem departamento');
+      if (!g.has(key)) g.set(key, []);
+      g.get(key).push(w);
+    }
+    return [...g.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [works]);
+  const isEntregue = (w) => w.estado === 'ENTREGUE';
+
   async function doExport(fmt) {
     setExporting(fmt);
     try {
@@ -126,28 +138,46 @@ export default function Dashboard() {
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        {/* Lista */}
-        <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white max-h-[40vh] overflow-auto">
+        {/* Lista agrupada por departamento (subtotais + Entregues destacados) */}
+        <div className="rounded-xl border border-slate-200 bg-white max-h-[46vh] overflow-auto">
           {loading ? (
             <p className="p-4 text-sm text-slate-500">A carregar…</p>
           ) : works.length === 0 ? (
             <p className="p-4 text-sm text-slate-500">Sem trabalhos para estes filtros.</p>
-          ) : works.map((w) => (
-            <button key={w.id} onClick={() => navigate(`/trabalhos/${w.id}/editar`)}
-              className="w-full text-left p-3 hover:bg-slate-50 flex items-start justify-between gap-2">
-              <span className="min-w-0">
-                <span className="font-medium text-slate-800">{w.pm || w.id_ordem}</span>
-                <span className="block text-sm text-slate-500 truncate">{w.denominacao}</span>
-                <span className="block text-xs text-slate-400">
-                  {[w.commune || w.zona, w.tipo_trabalho].filter(Boolean).join(' · ')}
-                </span>
-                <span className="block text-xs text-slate-400">
-                  {[w.department_code, w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
-                </span>
-              </span>
-              <StateBadge code={w.estado} />
-            </button>
-          ))}
+          ) : grouped.map(([dept, list]) => {
+            const entregues = list.filter(isEntregue).length;
+            return (
+              <div key={dept}>
+                <div className="sticky top-0 z-[1] flex items-center gap-2 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 border-b border-slate-200">
+                  <span>{dept}</span>
+                  <span className="text-slate-400">({list.length})</span>
+                  {entregues > 0 && (
+                    <span className="ml-auto rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">
+                      {entregues} entregue{entregues > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {list.map((w) => (
+                    <button key={w.id} onClick={() => navigate(`/trabalhos/${w.id}/editar`)}
+                      className={`w-full text-left p-3 hover:bg-slate-50 flex items-start justify-between gap-2 ${isEntregue(w) ? 'border-l-4 border-emerald-600 bg-emerald-50/40' : ''}`}>
+                      <span className="min-w-0">
+                        <span className="font-medium text-slate-800">{w.pm || w.id_ordem}</span>
+                        <span className="block text-sm text-slate-500 truncate">{w.denominacao}</span>
+                        <span className="block text-xs text-slate-400">
+                          {[w.commune || w.zona, w.tipo_trabalho].filter(Boolean).join(' · ')}
+                        </span>
+                        <span className="block text-xs text-slate-400">
+                          {[w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
+                        </span>
+                      </span>
+                      <StateBadge code={w.estado} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </aside>
     </div>

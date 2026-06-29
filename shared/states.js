@@ -14,6 +14,7 @@ export const STATES = [
   { code: 'NOK',                   label: 'NOK',                      color: '#dc2626', kml: 'ff2626dc' },
   { code: 'A_FAZER',               label: 'A Fazer',                  color: '#60a5fa', kml: 'fffaa560' },
   { code: 'FEITO',                 label: 'Feito',                    color: '#16a34a', kml: 'ff4aa316' },
+  { code: 'ENTREGUE',              label: 'Entregue',                 color: '#065f46', kml: 'ff465f06' },
   { code: 'TIRAGE_OK_FALTA_RACCO', label: 'Tirage OK - Falta Racco',  color: '#f97316', kml: 'ff1673f9' },
   { code: 'PENDENTE_NEVE',         label: 'Pendente - Neve',          color: '#22d3ee', kml: 'ffeed322' },
   { code: 'PENDENTE_RDV',          label: 'Pendente - RDV',           color: '#a855f7', kml: 'fff755a8' },

@@ -28,6 +28,7 @@ const RULES = [
   [/a enviar retorno|retour a envoyer|retour a enviar|retorno a enviar|a enviar/, 'A_ENVIAR_RETORNO'],
   [/\bnok\b/, 'NOK'],
   [/a fazer|a faire|att a fazer/, 'A_FAZER'],
+  [/entregue|\blivre\b|retour envoye|retorno enviado/, 'ENTREGUE'],
   [/feito|\bfait\b|termine|^ok\b|^ok-|^ok /, 'FEITO'],
   // Agendamento / espera / bloqueio = pendente (texto livre comum no STATUS).
   [/aguarda|attente|en attente|odeon|bloque|bloquead|em espera|en espera|\bespera\b|novo estudo|nouvelle etude/, 'PENDENTE'],

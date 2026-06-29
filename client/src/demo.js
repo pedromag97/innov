@@ -26,7 +26,7 @@ const departments = [
 const deptByCode = Object.fromEntries(departments.map((d) => [d.code, d]));
 // Zona -> departamento (Loiret = ERT45, Isère = ERT38).
 function deptForZona(z) {
-  const m = { loiret: 1, 'isère': 2, isere: 2 };
+  const m = { loiret: 1, 'isère': 2, isere: 2, 'pyrénées': 3, pyrenees: 3, 'béarn': 3, bearn: 3 };
   return z ? (m[z.toLowerCase()] || null) : null;
 }
 
@@ -58,6 +58,8 @@ let works = [
   { id: 10, id_ordem: 'LA_MOTTE_D_AVEILLANS', denominacao: 'La Motte d\'Aveillans — PBO SAT', pm: 'PM0342', commune: 'LA MOTTE D\'AVEILLANS', tipo_trabalho: 'PBO SAT', cdt: 'Amghar Makhlouf', tarefas: 'PBO010 alignement', estado: 'NAO_NO_SUIVI', lat: 44.9986, lng: 5.7497, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'B - LUIS BESSA' },
   { id: 11, id_ordem: 'HUEZ_882_ROUTE', denominacao: 'Huez — 882 Route d\'Huez', pm: 'PM0079', commune: 'HUEZ', tipo_trabalho: 'ALIGNEMENT', cdt: 'Marcos Brazio', tarefas: 'Raccordement unitaire', estado: 'A_ENVIAR_RETORNO', lat: 45.0921, lng: 6.0689, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'B - LUIS BESSA' },
   { id: 12, id_ordem: 'LORRIS_NEIGE', denominacao: 'Lorris — Tirage', pm: 'PM2915', commune: 'LORRIS', tipo_trabalho: 'DEPLOIMENT - PONTAS', cdt: 'Emilie Chassinat', tarefas: 'TIRAGE SOUT 1700m', estado: 'PENDENTE_NEVE', lat: 47.8869, lng: 2.5103, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
+  { id: 13, id_ordem: 'INGRE_PAPILLONS', denominacao: 'Ingré — des Papillons', pm: 'PM009', commune: 'INGRÉ', tipo_trabalho: 'ZMD', cdt: 'Gilles Gouge', tarefas: '52m 12FO — retorno enviado', estado: 'ENTREGUE', lat: 47.9319, lng: 1.8264, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
+  { id: 14, id_ordem: 'PAU_CTO_CENTRE', denominacao: 'Pau — CTO Centre', pm: 'PM064', commune: 'PAU', tipo_trabalho: 'POIV', cdt: 'Sylvan Coten', tarefas: '300m 24FO', estado: 'A_FAZER', lat: 43.2951, lng: -0.3708, country: 'FR', zona: 'Pyrénées', team_id: 4, team_name: 'B - LUIS BESSA' },
 ];
 
 // Anota cada trabalho com o departamento (via zona) — usado no âmbito do CDT.
