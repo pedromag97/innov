@@ -52,8 +52,8 @@ router.post('/:id/returns', upload.array('photos', 10), async (req, res) => {
       );
       const ret = retRows[0];
 
-      // Atualiza o estado do trabalho com o retorno.
-      await client.query('UPDATE works SET estado = $1 WHERE id = $2', [new_estado, workId]);
+      // Atualiza o estado e coloca o trabalho na fila "a entregar".
+      await client.query('UPDATE works SET estado = $1, pending_delivery = true WHERE id = $2', [new_estado, workId]);
 
       // Histórico: estado + retorno.
       await logHistory(client, {

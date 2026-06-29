@@ -70,6 +70,14 @@ works.forEach((w) => {
   w.department_name = d ? d.name : null;
 });
 
+// Retornos pendentes de entrega (simula terreno que já submeteu retorno).
+const demoReturns = {
+  4: { return_estado: 'FEITO', return_obs: 'CTO instalada, cliente OK.', return_user: 'José Santos', return_at: new Date(Date.now() - 3e7).toISOString(), gps_lat: 41.1846, gps_lng: -8.6918, photos: [] },
+  5: { return_estado: 'FEITO', return_obs: 'Tirage concluído, PBO posée.', return_user: 'Valter Ribeiro', return_at: new Date(Date.now() - 5e7).toISOString(), gps_lat: 47.9487, gps_lng: 1.8738, photos: [] },
+  9: { return_estado: 'PENDENTE_RDV', return_obs: 'Necessário RDV com o síndico.', return_user: 'Luis Bessa', return_at: new Date(Date.now() - 9e7).toISOString(), gps_lat: 45.3937, gps_lng: 6.0748, photos: [] },
+};
+works.forEach((w) => { if (demoReturns[w.id]) w.pending_delivery = true; });
+
 let nextId = 100;
 const delay = (v) => new Promise((r) => setTimeout(() => r(v), 120));
 const clone = (x) => JSON.parse(JSON.stringify(x));
@@ -124,7 +132,27 @@ export const demoApi = {
   createWork: (body) => { const w = { ...body, id: nextId++, team_name: teams.find((t)=>String(t.id)===String(body.team_id))?.name }; works.unshift(w); return delay({ work: clone(w) }); },
   updateWork: (id, body) => { const w = works.find((x)=>String(x.id)===String(id)); Object.assign(w, body, { team_name: teams.find((t)=>String(t.id)===String(body.team_id))?.name ?? w.team_name }); return delay({ work: clone(w) }); },
   deleteWork: (id) => { works = works.filter((w)=>String(w.id)!==String(id)); return delay({ ok: true }); },
-  submitReturn: (id, fd) => { const w = works.find((x)=>String(x.id)===String(id)); const ns = fd.get ? fd.get('new_estado') : null; if (w && ns) w.estado = ns; return delay({ return: { id: nextId++ } }); },
+  submitReturn: (id, fd) => {
+    const w = works.find((x) => String(x.id) === String(id));
+    const ns = fd.get ? fd.get('new_estado') : null;
+    const obs = fd.get ? fd.get('observacoes') : '';
+    if (w) {
+      if (ns) w.estado = ns;
+      w.pending_delivery = true; // entra na fila "a entregar"
+      demoReturns[w.id] = { return_estado: ns || w.estado, return_obs: obs, return_user: 'Equipa (demo)', return_at: new Date().toISOString(), gps_lat: w.lat, gps_lng: w.lng, photos: [] };
+    }
+    return delay({ return: { id: nextId++ } });
+  },
+
+  // Fila de entregas (âmbito por papel).
+  listDeliveries: () => {
+    const user = getDemoUser();
+    const list = works.filter((w) => w.pending_delivery && inScope(w, user))
+      .map((w) => ({ ...clone(w), ...demoReturns[w.id], return_id: w.id }));
+    return delay({ deliveries: list });
+  },
+  deliverWork: (id) => { const w = works.find((x) => String(x.id) === String(id)); if (w) { w.estado = 'ENTREGUE'; w.pending_delivery = false; } delete demoReturns[id]; return delay({ work: clone(w) }); },
+  dismissDelivery: (id) => { const w = works.find((x) => String(x.id) === String(id)); if (w) w.pending_delivery = false; delete demoReturns[id]; return delay({ ok: true }); },
 
   listDepartments: () => delay({ departments: clone(departments) }),
   createDepartment: (b) => { const d = { ...b, id: nextId++, active: true }; departments.push(d); return delay({ department: d }); },

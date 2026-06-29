@@ -81,6 +81,9 @@ CREATE TABLE IF NOT EXISTS works (
   zona          TEXT,                                -- zona/projeto (texto livre) — filtro
   department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,  -- âmbito do CDT
   team_id       INTEGER REFERENCES teams(id) ON DELETE SET NULL,
+  -- Fluxo de entrega ao cliente/operador
+  pending_delivery BOOLEAN NOT NULL DEFAULT false, -- tem retorno por entregar
+  delivered_at  TIMESTAMPTZ,                  -- quando foi entregue ao operador
   -- Importação idempotente
   source        TEXT,                         -- folha/origem de import
   import_key    TEXT UNIQUE,                  -- chave natural estável p/ upsert (NULL = criado na app)

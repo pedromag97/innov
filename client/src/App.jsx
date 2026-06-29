@@ -8,6 +8,7 @@ import WorkForm from './pages/WorkForm.jsx';
 import FieldList from './pages/FieldList.jsx';
 import FieldReturn from './pages/FieldReturn.jsx';
 import Admin from './pages/Admin.jsx';
+import Deliveries from './pages/Deliveries.jsx';
 
 function Protected({ children, allow }) {
   const { user, ready } = useAuth();
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/dashboard" element={<Protected allow={MANAGE_ROLES}><Dashboard /></Protected>} />
         <Route path="/trabalhos/novo" element={<Protected allow={MANAGE_ROLES}><WorkForm /></Protected>} />
         <Route path="/trabalhos/:id/editar" element={<Protected allow={MANAGE_ROLES}><WorkForm /></Protected>} />
+        <Route path="/entregas" element={<Protected allow={MANAGE_ROLES}><Deliveries /></Protected>} />
         <Route path="/admin" element={<Protected allow={['ADMIN']}><Admin /></Protected>} />
 
         {/* Equipa de terreno (qualquer papel autenticado) */}

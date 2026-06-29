@@ -102,7 +102,7 @@ export default function FieldReturn() {
           <span className="block text-xs font-medium text-slate-500 mb-1">Novo estado</span>
           <select value={estado} onChange={(e) => setEstado(e.target.value)}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-            {STATES.map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
+            {STATES.filter((s) => s.code !== 'ENTREGUE').map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
           </select>
         </label>
 

@@ -69,6 +69,11 @@ const realApi = {
   createDepartment: (body) => request('POST', '/departments', { body }),
   updateDepartment: (id, body) => request('PATCH', `/departments/${id}`, { body }),
 
+  // deliveries (fila de entrega ao operador)
+  listDeliveries: () => request('GET', '/deliveries'),
+  deliverWork: (id) => request('POST', `/deliveries/${id}/deliver`),
+  dismissDelivery: (id) => request('POST', `/deliveries/${id}/dismiss`),
+
   // export — fetch autenticado + download do blob (anchor não envia o header).
   downloadExport: async (fmt, params = {}) => {
     const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null && v !== ''));
