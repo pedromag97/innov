@@ -9,7 +9,8 @@ const router = Router();
 router.use(requireAuth);
 
 // Campos editáveis pelo backoffice.
-const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada', 'estado', 'country', 'zona', 'team_id'];
+const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada', 'estado', 'country', 'zona', 'team_id',
+  'pm', 'commune', 'tipo_trabalho', 'cdt', 'tarefas', 'ticket_ref'];
 
 // ─── GET /api/works ─────────────────────────────────────────────────────
 // Filtros: ?estado=&team_id=&country=&zona=&q=

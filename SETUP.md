@@ -178,6 +178,44 @@ Se tudo isto passar, a Fase 1 está concluída. ✅
 
 ---
 
+## Importação dos dados atuais (Fase 2)
+
+Importa os trabalhos das Google Sheets atuais para a app. Cada folha tem um
+**perfil** (mapeamento de colunas) — perfis disponíveis: `loiret`, `deploiement`,
+`isere_sav`, `earth_address`.
+
+**Duas origens possíveis:**
+
+### A) Direto da Google Sheet (recomendado)
+Reutiliza a Service Account do Drive. Passos extra:
+1. Google Cloud → ativa também a **Google Sheets API**.
+2. Partilha a folha com o email da service account (leitura).
+3. Corre (primeiro em **dry-run** para veres o relatório sem gravar):
+```bash
+cd server
+node src/import/cli.js --source loiret --sheet <SPREADSHEET_ID> --all-tabs --dry-run
+# depois, a sério (com geocodificação):
+node src/import/cli.js --source loiret --sheet <SPREADSHEET_ID> --all-tabs
+```
+
+### B) A partir de CSV
+Exporta a aba (Ficheiro → Transferir → CSV) e:
+```bash
+node src/import/cli.js --source isere_sav --csv ./isere.csv --dry-run
+node src/import/cli.js --source isere_sav --csv ./isere.csv
+```
+
+**Notas:**
+- A importação é **idempotente** (chave `import_key` = origem|dossier|commune|pm|data).
+  Re-correr atualiza em vez de duplicar.
+- **Geocodificação:** sem coordenadas guardadas, a app geocodifica por morada (nível
+  rua) ou commune (centro da cidade) via OpenStreetMap. ~1 req/s, cacheado por
+  commune. Usa `--no-geocode` para importar sem coordenadas (ficam sem pin).
+- O relatório mostra: novos/atualizados/ignorados, por estado, e **estados não
+  reconhecidos** (para afinar o mapeamento em `lib/stateMapping.js`).
+- Cria primeiro as **equipas** (no Admin) com os nomes tal como nas folhas
+  (ex.: "VALTER RIBEIRO") para a importação as associar automaticamente.
+
 ## Resolução de problemas
 | Sintoma | Causa provável |
 |---|---|

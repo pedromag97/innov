@@ -43,29 +43,54 @@ CREATE TABLE IF NOT EXISTS users (
 -- ─────────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS works (
   id            SERIAL PRIMARY KEY,
-  id_ordem      TEXT NOT NULL,               -- ID Ordem (referência de negócio)
-  denominacao   TEXT NOT NULL,               -- Denominação
+  id_ordem      TEXT NOT NULL,               -- referência de negócio (dossier/ticket). NÃO único: o PM repete-se.
+  denominacao   TEXT NOT NULL,               -- Denominação / nome do dossier
   descricao     TEXT,                        -- Descrição
-  -- Localização: coordenadas OU morada. Morada geocodificada -> lat/lng.
+  -- Campos operacionais (vindos das folhas reais)
+  pm            TEXT,                         -- código PM (não único)
+  commune       TEXT,                        -- cidade / commune (base de geocodificação)
+  tipo_trabalho TEXT,                         -- ZMD, POIV, DEPLOIMENT, VTL, MAINTENANCE, DEF INFRA, PBO SAT...
+  cdt           TEXT,                         -- condutor de trabalho (responsável)
+  tarefas       TEXT,                         -- descrição de tarefas / metragens
+  ticket_ref    TEXT,                         -- C35..., SRO-BPI..., PRJ...
+  -- Localização: coordenadas OU morada/commune. Geocodificadas -> lat/lng.
   lat           DOUBLE PRECISION,
   lng           DOUBLE PRECISION,
   morada        TEXT,
+  geocoded      BOOLEAN NOT NULL DEFAULT FALSE,  -- lat/lng veio de geocodificação
   -- Classificação
   estado        TEXT NOT NULL DEFAULT 'PENDENTE',   -- código de shared/states.js
   country       TEXT NOT NULL DEFAULT 'PT',          -- 'PT' | 'FR'
-  zona          TEXT,                                -- zona geográfica (filtro)
+  zona          TEXT,                                -- zona/projeto (Loiret, Isère...) — filtro
   team_id       INTEGER REFERENCES teams(id) ON DELETE SET NULL,
+  -- Importação idempotente
+  source        TEXT,                         -- folha/origem de import
+  import_key    TEXT UNIQUE,                  -- chave natural estável p/ upsert (NULL = criado na app)
   -- Auditoria
   created_by    INTEGER REFERENCES users(id) ON DELETE SET NULL,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (id_ordem)
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_works_estado  ON works (estado);
 CREATE INDEX IF NOT EXISTS idx_works_team    ON works (team_id);
 CREATE INDEX IF NOT EXISTS idx_works_country ON works (country);
 CREATE INDEX IF NOT EXISTS idx_works_zona    ON works (zona);
+CREATE INDEX IF NOT EXISTS idx_works_pm      ON works (pm);
+CREATE INDEX IF NOT EXISTS idx_works_commune ON works (commune);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- geocode_cache — resultados de geocodificação por query (commune/morada)
+-- ─────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS geocode_cache (
+  query       TEXT PRIMARY KEY,             -- texto normalizado pesquisado
+  lat         DOUBLE PRECISION,
+  lng         DOUBLE PRECISION,
+  display     TEXT,                         -- nome devolvido pelo geocoder
+  provider    TEXT,
+  found       BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- work_returns — retorno submetido pela equipa de terreno

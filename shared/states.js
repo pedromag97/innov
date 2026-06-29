@@ -19,6 +19,8 @@ export const STATES = [
   { code: 'PENDENTE_NEVE',         label: 'Pendente - Neve',          color: '#22d3ee', kml: 'ffeed322' },
   { code: 'PENDENTE_RDV',          label: 'Pendente - RDV',           color: '#a855f7', kml: 'fff755a8' },
   { code: 'PENDENTE_GC',           label: 'Pendente - GC',            color: '#eab308', kml: 'ff08b3ea' },
+  { code: 'NAO_NO_SUIVI',          label: 'Não está no SUIVI',        color: '#9333ea', kml: 'fff23393' },
+  { code: 'A_ENVIAR_RETORNO',      label: 'A enviar retorno',         color: '#0d9488', kml: 'ff88940d' },
 ];
 
 export const STATE_CODES = STATES.map((s) => s.code);
