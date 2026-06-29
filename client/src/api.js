@@ -73,7 +73,7 @@ const realApi = {
     const blob = await res.blob();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `fibracampo.${fmt}`;
+    a.download = `innov.${fmt}`;
     document.body.appendChild(a);
     a.click();
     a.remove();

@@ -61,7 +61,7 @@ function filterWorks(params = {}) {
 function buildKml(list) {
   const styles = STATES.map((s) => `<Style id="s-${s.code}"><IconStyle><color>${s.kml}</color><Icon><href>http://maps.google.com/mapfiles/kml/paddle/wht-blank.png</href></Icon></IconStyle></Style>`).join('');
   const marks = list.filter((w) => w.lat != null).map((w) => `<Placemark><name>${w.id_ordem} — ${w.denominacao}</name><description>${stateLabel(w.estado)}</description><styleUrl>#s-${w.estado}</styleUrl><Point><coordinates>${w.lng},${w.lat},0</coordinates></Point></Placemark>`).join('');
-  return `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>FibraCampo (demo)</name>${styles}${marks}</Document></kml>`;
+  return `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Innov (demo)</name>${styles}${marks}</Document></kml>`;
 }
 
 export const demoApi = {
@@ -92,7 +92,7 @@ export const demoApi = {
     const kml = buildKml(filterWorks(params));
     const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = `fibracampo-demo.${fmt}`;
+    a.href = URL.createObjectURL(blob); a.download = `innov-demo.${fmt}`;
     document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
   },
 };

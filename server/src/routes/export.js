@@ -34,7 +34,7 @@ router.get('/kml', async (req, res) => {
   const works = await fetchWorks(req);
   const kml = buildKml(works);
   res.setHeader('Content-Type', 'application/vnd.google-earth.kml+xml; charset=utf-8');
-  res.setHeader('Content-Disposition', 'attachment; filename="fibracampo.kml"');
+  res.setHeader('Content-Disposition', 'attachment; filename="innov.kml"');
   res.send(kml);
 });
 
@@ -46,7 +46,7 @@ router.get('/kmz', async (req, res) => {
   zip.addFile('doc.kml', Buffer.from(kml, 'utf8'));
   const buf = zip.toBuffer();
   res.setHeader('Content-Type', 'application/vnd.google-earth.kmz');
-  res.setHeader('Content-Disposition', 'attachment; filename="fibracampo.kmz"');
+  res.setHeader('Content-Disposition', 'attachment; filename="innov.kmz"');
   res.send(buf);
 });
 

@@ -14,7 +14,7 @@ export default function Layout() {
     <div className="min-h-full flex flex-col bg-slate-50">
       <header className="bg-brand text-white shadow">
         <div className="mx-auto max-w-7xl px-4 h-14 flex items-center justify-between">
-          <Link to="/" className="font-bold text-lg tracking-tight">FibraCampo</Link>
+          <Link to="/" className="font-bold text-lg tracking-tight">Innov</Link>
           <nav className="flex items-center gap-4 text-sm">
             {isBackoffice && <Link to="/dashboard" className="hover:underline">Dashboard</Link>}
             <Link to="/terreno" className="hover:underline">Terreno</Link>

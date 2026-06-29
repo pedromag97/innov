@@ -10,7 +10,7 @@
 import { query } from '../db.js';
 
 const NOMINATIM_URL = process.env.NOMINATIM_URL || 'https://nominatim.openstreetmap.org/search';
-const USER_AGENT = 'FibraCampo/1.0 (fieldwork import)';
+const USER_AGENT = 'Innov/1.0 (fieldwork import)';
 const MIN_INTERVAL_MS = 1100; // ~1 req/s
 
 let lastCall = 0;

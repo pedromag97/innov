@@ -1,4 +1,4 @@
-# FibraCampo — Gestão de Trabalhos de Campo (FTTH)
+# Innov — Gestão de Trabalhos de Campo (FTTH)
 
 Aplicação web interna (PWA) para gestão de trabalhos de instalação de fibra ótica
 (FTTH) com equipas de terreno em Portugal e França. Substitui o fluxo atual de
@@ -115,7 +115,7 @@ docker compose up --build      # http://localhost:4000
 
 ### 1. Base de dados
 ```bash
-createdb fibracampo
+createdb innov
 ```
 
 ### 2. Backend

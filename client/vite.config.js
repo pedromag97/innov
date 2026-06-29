@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'FibraCampo — Gestão de Trabalhos',
-        short_name: 'FibraCampo',
+        name: 'Innov — Gestão de Trabalhos',
+        short_name: 'Innov',
         description: 'Gestão de trabalhos de campo de fibra ótica (FTTH)',
         lang: 'pt-PT',
         theme_color: '#1d4ed8',

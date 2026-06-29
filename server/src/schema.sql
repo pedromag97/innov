@@ -1,4 +1,4 @@
--- FibraCampo — modelo de dados (PostgreSQL)
+-- Innov — modelo de dados (PostgreSQL)
 -- Idempotente: pode correr várias vezes (CREATE TABLE IF NOT EXISTS).
 
 -- ─────────────────────────────────────────────────────────────────────────

@@ -1,9 +1,9 @@
-# FibraCampo — imagem única (Express serve a API + o build do React).
+# Innov — imagem única (Express serve a API + o build do React).
 # Multi-stage: (1) build do frontend, (2) runtime do servidor com o dist incluído.
 #
 # O Client ID do Google é "baked" no build do frontend, por isso passa-se como
 # build-arg:
-#   docker build -t fibracampo \
+#   docker build -t innov \
 #     --build-arg VITE_GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com .
 
 # ─── Stage 1: build do frontend ──────────────────────────────────────────

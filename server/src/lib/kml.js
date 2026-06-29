@@ -58,7 +58,7 @@ function buildPlacemark(w) {
 }
 
 // Gera o documento KML completo a partir de uma lista de trabalhos.
-export function buildKml(works, { documentName = 'FibraCampo — Trabalhos' } = {}) {
+export function buildKml(works, { documentName = 'Innov — Trabalhos' } = {}) {
   // Agrupa por estado, mantendo a ordem canónica dos estados.
   const byState = new Map(STATES.map((s) => [s.code, []]));
   for (const w of works) {

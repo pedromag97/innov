@@ -1,4 +1,4 @@
-// FibraCampo — entrypoint da API Express.
+// Innov — entrypoint da API Express.
 import express from 'express';
 import cors from 'cors';
 import { existsSync } from 'node:fs';
@@ -21,7 +21,7 @@ app.use(cors({ origin: config.clientOrigin, credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 
 // Healthcheck (deploy probes).
-app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'fibracampo', ts: Date.now() }));
+app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'innov', ts: Date.now() }));
 
 // Rotas da API.
 app.use('/api/auth', authRoutes);
@@ -40,9 +40,9 @@ if (existsSync(clientDist)) {
   app.use(express.static(clientDist));
   // Fallback SPA: qualquer GET não-API devolve o index.html (React Router trata).
   app.get('*', (_req, res) => res.sendFile(join(clientDist, 'index.html')));
-  console.log('[fibracampo] a servir frontend de', clientDist);
+  console.log('[innov] a servir frontend de', clientDist);
 } else {
-  console.log('[fibracampo] client/dist não existe — modo só-API (usa o Vite dev em :5173)');
+  console.log('[innov] client/dist não existe — modo só-API (usa o Vite dev em :5173)');
 }
 
 // Handler de erros central.
@@ -52,5 +52,5 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(config.port, () => {
-  console.log(`[fibracampo] a correr em http://localhost:${config.port}`);
+  console.log(`[innov] a correr em http://localhost:${config.port}`);
 });

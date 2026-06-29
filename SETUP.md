@@ -1,4 +1,4 @@
-# FibraCampo — Guia de Setup & Deploy (Fase 1)
+# Innov — Guia de Setup & Deploy (Fase 1)
 
 Passo-a-passo para pôr a app a correr ponta-a-ponta: credenciais Google,
 PostgreSQL, variáveis de ambiente, execução local e deploy. No fim há um
@@ -21,7 +21,7 @@ PostgreSQL, variáveis de ambiente, execução local e deploy. No fim há um
 
 ## Passo A — Google OAuth Client ID (login)
 
-1. Google Cloud Console → cria um projeto (ex.: `fibracampo`).
+1. Google Cloud Console → cria um projeto (ex.: `innov`).
 2. **APIs & Services → OAuth consent screen**:
    - User type: **Internal** se todos têm conta da organização Google Workspace;
      senão **External** e adiciona os emails em "Test users".
@@ -51,7 +51,7 @@ As fotos dos retornos são guardadas no Google Drive via Service Account.
 2. **Credentials → Create Credentials → Service account** → cria.
 3. Na service account → **Keys → Add key → JSON** → descarrega o ficheiro.
    Guarda-o como `server/service-account.json` (já está no `.gitignore`).
-4. No Google Drive, cria uma pasta (ex.: `FibraCampo Fotos`) e **partilha-a**
+4. No Google Drive, cria uma pasta (ex.: `Innov Fotos`) e **partilha-a**
    com o email da service account (`xxx@projeto.iam.gserviceaccount.com`),
    permissão **Editor**.
 5. Abre a pasta no Drive e copia o ID do URL
@@ -66,8 +66,8 @@ As fotos dos retornos são guardadas no Google Drive via Service Account.
 
 **Local:**
 ```bash
-createdb fibracampo
-# DATABASE_URL=postgres://postgres:postgres@localhost:5432/fibracampo
+createdb innov
+# DATABASE_URL=postgres://postgres:postgres@localhost:5432/innov
 ```
 
 **Gerido (produção):** cria uma instância **na região UE** (ex.: Frankfurt).
@@ -82,7 +82,7 @@ define também `PGSSL=require`.
 ```
 PORT=4000
 CLIENT_ORIGIN=http://localhost:5173
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/fibracampo
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/innov
 GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
 JWT_SECRET=<gera-um-segredo-aleatorio-longo>
 JWT_EXPIRES_IN=12h
@@ -130,7 +130,7 @@ A imagem Docker serve tudo. Funciona em qualquer plataforma com Docker.
 
 **Build da imagem** (o Client ID é "baked" no frontend):
 ```bash
-docker build -t fibracampo \
+docker build -t innov \
   --build-arg VITE_GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com .
 ```
 
