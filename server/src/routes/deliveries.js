@@ -1,12 +1,15 @@
 // Fila de entregas: trabalhos com retorno por entregar ao cliente/operador.
 import { Router } from 'express';
 import { query } from '../db.js';
-import { requireAuth, requireManageWorks } from '../middleware/auth.js';
+import { requireAuth, requireManageWorks, requireRole } from '../middleware/auth.js';
 import { worksScope, canMutateWork } from '../lib/scope.js';
 import { logHistory } from '../lib/history.js';
 
 const router = Router();
 router.use(requireAuth, requireManageWorks);
+
+// Devolver ao dashboard é poder de backoffice/gerente/admin (não CDT).
+const requireReturnPower = requireRole('ADMIN', 'GERENTE', 'BACKOFFICE');
 
 // GET /api/deliveries — trabalhos a entregar (com o último retorno + fotos), no âmbito.
 router.get('/', async (req, res) => {
@@ -64,12 +67,17 @@ router.post('/:id/deliver', async (req, res) => {
   res.json({ work: rows[0] });
 });
 
-// POST /api/deliveries/:id/dismiss — tirar da fila sem entregar (ex.: NOK a resolver).
-router.post('/:id/dismiss', async (req, res) => {
+// POST /api/deliveries/:id/dismiss — devolver ao dashboard (sai da fila, mantém o
+// estado para retrabalho). Poder de backoffice/gerente/admin (não CDT).
+router.post('/:id/dismiss', requireReturnPower, async (req, res) => {
   const w = await workScopeRow(req.params.id);
   if (!w) return res.status(404).json({ error: 'Trabalho não encontrado' });
   if (!canMutateWork(req.user, w)) return res.status(403).json({ error: 'Fora do seu âmbito' });
   await query('UPDATE works SET pending_delivery=false WHERE id=$1', [req.params.id]);
+  await logHistory({ query: (...a) => query(...a) }, {
+    workId: req.params.id, userId: req.user.uid, action: 'UPDATE',
+    field: 'pending_delivery', oldValue: 'true', newValue: 'false', note: 'Devolvido ao dashboard',
+  });
   res.json({ ok: true });
 });
 

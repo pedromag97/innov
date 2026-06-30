@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
+import { useAuth } from '../auth/AuthContext.jsx';
 import StateBadge from '../components/StateBadge.jsx';
 
 // Fila "A entregar": trabalhos com retorno do terreno, à espera de serem
 // entregues ao cliente/operador. O backoffice revê e marca como Entregue.
 export default function Deliveries() {
+  const { user } = useAuth();
+  // Devolver ao dashboard: poder de backoffice/gerente/admin (não CDT).
+  const canReturn = ['ADMIN', 'GERENTE', 'BACKOFFICE'].includes(user?.role);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -25,7 +29,7 @@ export default function Deliveries() {
     catch (e) { setError(e.message); } finally { setBusy(null); }
   }
   async function dismiss(id) {
-    if (!confirm('Tirar da fila sem entregar?')) return;
+    if (!confirm('Devolver ao dashboard? O trabalho sai da fila de entrega e volta para gestão (mantém o estado atual).')) return;
     setBusy(id);
     try { await api.dismissDelivery(id); setItems((xs) => xs.filter((x) => x.id !== id)); notifyChanged(); }
     catch (e) { setError(e.message); } finally { setBusy(null); }
@@ -87,10 +91,12 @@ export default function Deliveries() {
               className="rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-medium hover:bg-emerald-700 disabled:opacity-50">
               {busy === w.id ? '…' : 'Marcar como entregue'}
             </button>
-            <button onClick={() => dismiss(w.id)} disabled={busy === w.id}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50">
-              Tirar da fila
-            </button>
+            {canReturn && (
+              <button onClick={() => dismiss(w.id)} disabled={busy === w.id}
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50">
+                Devolver ao dashboard
+              </button>
+            )}
           </div>
         </div>
       ))}
