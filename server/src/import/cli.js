@@ -4,11 +4,20 @@
 //   node src/import/cli.js --source isere_sav --sheet <SPREADSHEET_ID> --tab "37/Trabalhos"
 //   node src/import/cli.js --source loiret --sheet <ID> --all-tabs
 //
-import { getProfile } from './profiles.js';
+import { getProfile, normHeader } from './profiles.js';
 import { readCsvFile } from './adapters/csv.js';
 import { listTabs, readTab } from './adapters/sheets.js';
+import { readMarkdownFile } from './adapters/markdown.js';
 import { runImport } from './importer.js';
 import { pool } from '../db.js';
+
+// Uma tabela markdown é "de trabalhos" se tiver TRABALHOS + PM + (STATUS|Retorno|Estado).
+function isWorkTable(headers) {
+  const nh = headers.map(normHeader);
+  return nh.some((h) => h.includes('trabalhos'))
+    && nh.some((h) => h === 'pm')
+    && nh.some((h) => /status|retorno|estado/.test(h));
+}
 
 function parseArgs(argv) {
   const a = {};
@@ -35,6 +44,11 @@ async function main() {
   const batches = [];
   if (args.csv) {
     batches.push(readCsvFile(args.csv, { headerRow, delimiter: args.delimiter || ',' }));
+  } else if (args.md) {
+    // Conteúdo markdown do conector Drive: só as tabelas de trabalhos.
+    const tables = readMarkdownFile(args.md);
+    for (const t of tables) if (isWorkTable(t.headers) && t.rows.length) batches.push(t);
+    console.log(`  (markdown: ${tables.length} tabelas, ${batches.length} de trabalhos)`);
   } else if (args.sheet) {
     const tabs = args['all-tabs'] ? await listTabs(args.sheet) : [args.tab];
     if (!tabs[0]) throw new Error('--tab <nome> ou --all-tabs obrigatório com --sheet');
