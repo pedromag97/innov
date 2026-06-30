@@ -13,6 +13,7 @@ import teamsRoutes from './routes/teams.js';
 import departmentsRoutes from './routes/departments.js';
 import catalogsRoutes from './routes/catalogs.js';
 import pmsRoutes from './routes/pms.js';
+import geocodeRoutes from './routes/geocode.js';
 import deliveriesRoutes from './routes/deliveries.js';
 import billingRoutes from './routes/billing.js';
 import exportRoutes from './routes/export.js';
@@ -36,6 +37,7 @@ app.use('/api/teams', teamsRoutes);
 app.use('/api/departments', departmentsRoutes);
 app.use('/api', catalogsRoutes);   // /api/work-types, /api/cdts
 app.use('/api/pms', pmsRoutes);
+app.use('/api/geocode', geocodeRoutes);
 app.use('/api/deliveries', deliveriesRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/export', exportRoutes);

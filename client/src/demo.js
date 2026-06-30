@@ -154,6 +154,12 @@ function buildKml(list) {
 export const demoApi = {
   login: () => delay({ token: 'demo', user: users[0] }),
   changePassword: () => delay({ ok: true }),
+  // Geocode simulado: devolve um ponto plausível (jitter à volta de FR/PT).
+  geocode: (q, country) => {
+    const base = country === 'PT' ? { lat: 39.5, lng: -8.0 } : { lat: 46.6, lng: 2.4 };
+    const h = String(q).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+    return delay({ found: true, lat: +(base.lat + ((h % 1000) / 1000 - 0.5) * 3).toFixed(5), lng: +(base.lng + (((h >> 10) % 1000) / 1000 - 0.5) * 4).toFixed(5), display: `${q} (demo)` });
+  },
 
   listWorks: (params) => delay({ works: clone(filterWorks(params)) }),
   getWork: (id) => delay({ work: clone(works.find((w) => String(w.id) === String(id))) }),

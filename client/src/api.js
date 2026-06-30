@@ -65,6 +65,12 @@ const realApi = {
   createUser: (body) => request('POST', '/teams/users', { body }),
   updateUser: (id, body) => request('PATCH', `/teams/users/${id}`, { body }),
 
+  // geocodificação (morada/commune -> coordenadas)
+  geocode: (q, country) => {
+    const qs = new URLSearchParams({ q, ...(country ? { country } : {}) });
+    return request('GET', `/geocode?${qs}`);
+  },
+
   // departments
   listDepartments: () => request('GET', '/departments'),
   createDepartment: (body) => request('POST', '/departments', { body }),

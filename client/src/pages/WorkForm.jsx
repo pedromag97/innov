@@ -63,6 +63,22 @@ export default function WorkForm() {
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const onDragEnd = useCallback(({ lat, lng }) => setForm((f) => ({ ...f, lat, lng })), []);
 
+  const [geoStatus, setGeoStatus] = useState(''); // ''|locating|ok|fail
+  const hasCoords = form.lat !== '' && form.lat != null && form.lng !== '' && form.lng != null;
+  // Georreferencia uma morada/commune e coloca o pin no mapa.
+  async function doGeocode(query) {
+    const q = (query || '').trim();
+    if (!q) return;
+    setGeoStatus('locating');
+    try {
+      const r = await api.geocode(q, form.country);
+      if (r && r.found) { setForm((f) => ({ ...f, lat: r.lat, lng: r.lng })); setGeoStatus('ok'); }
+      else setGeoStatus('fail');
+    } catch { setGeoStatus('fail'); }
+  }
+  // Ao sair do campo morada: geocodifica automaticamente se ainda não há coordenadas.
+  const onMoradaBlur = () => { if (form.morada && !hasCoords) doGeocode(form.morada); };
+
   // País: ao mudar, larga o departamento se já não pertencer a esse país.
   const onCountry = (e) => {
     const country = e.target.value;
@@ -201,14 +217,27 @@ export default function WorkForm() {
           <Field label="Ticket ref"><input value={form.ticket_ref || ''} onChange={set('ticket_ref')} className="inp" placeholder="C35…, SRO-BPI…" /></Field>
         </div>
 
-        <Field label="Morada (alternativa às coordenadas)">
-          <input value={form.morada || ''} onChange={set('morada')} className="inp" placeholder="Rua, nº, localidade" />
+        <Field label="Morada (georreferenciada automaticamente)">
+          <div className="flex gap-2">
+            <input value={form.morada || ''} onChange={set('morada')} onBlur={onMoradaBlur} className="inp" placeholder="Rua, nº, localidade" />
+            <button type="button" onClick={() => doGeocode(form.morada || form.commune)}
+              disabled={geoStatus === 'locating' || (!form.morada && !form.commune)}
+              className="shrink-0 rounded-lg border border-slate-300 px-3 text-sm hover:bg-slate-50 disabled:opacity-50" title="Localizar pela morada ou commune">
+              📍 Localizar
+            </button>
+          </div>
+          <span className="block text-xs mt-1">
+            {geoStatus === 'locating' && <span className="text-slate-400">a localizar…</span>}
+            {geoStatus === 'ok' && <span className="text-green-600">✓ coordenadas obtidas</span>}
+            {geoStatus === 'fail' && <span className="text-amber-600">não encontrado — ajusta a morada ou arrasta o pin</span>}
+            {!geoStatus && <span className="text-slate-400">Escreve a morada (ou usa a commune) — as coordenadas são obtidas automaticamente.</span>}
+          </span>
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Latitude"><input value={form.lat ?? ''} onChange={set('lat')} className="inp" placeholder="38.7223" /></Field>
           <Field label="Longitude"><input value={form.lng ?? ''} onChange={set('lng')} className="inp" placeholder="-9.1393" /></Field>
         </div>
-        <p className="text-xs text-slate-400">Arrasta o pin no mapa (ou clica) para definir as coordenadas.</p>
+        <p className="text-xs text-slate-400">Arrasta o pin no mapa (ou clica) para ajustar as coordenadas.</p>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
