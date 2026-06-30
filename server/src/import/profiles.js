@@ -35,28 +35,31 @@ const WORK_MAP = {
   ticket_ref:    ['tt', 'sro bpi', 'sro'],
 };
 
+// `department` = código do departamento (departments.code) a que a folha pertence.
+// O importador associa o department_id e alinha country/zona com esse departamento.
+// Pode ser sobreposto por --department <CODE> na CLI.
 export const PROFILES = {
   // Folha #2 (Loiret/Orléans) e tabs mensais semelhantes. Estado vem do STATUS.
   loiret: {
-    name: 'loiret', country: 'FR', zona: 'Loiret', defaultTeam: null,
+    name: 'loiret', department: 'ERT45', country: 'FR', zona: 'Loiret', defaultTeam: null,
     stateFrom: ['status', 'retorno'],
     map: WORK_MAP,
   },
-  // Folha #1 (zona com equipas PT). Mesma forma.
+  // Folha #1 (zona com equipas PT — CDTs da ERT 64). Mesma forma.
   deploiement: {
-    name: 'deploiement', country: 'FR', zona: 'Déploiement', defaultTeam: null,
+    name: 'deploiement', department: 'ERT64', country: 'FR', zona: 'Déploiement', defaultTeam: null,
     stateFrom: ['status', 'retorno'],
     map: WORK_MAP,
   },
   // Folha #3 (Isère / SAV). O estado rico está no RETORNO (PENDENTE-*, FEITO...).
   isere_sav: {
-    name: 'isere_sav', country: 'FR', zona: 'Isère', defaultTeam: null,
+    name: 'isere_sav', department: 'ERT38', country: 'FR', zona: 'Isère', defaultTeam: null,
     stateFrom: ['retorno', 'status'],
     map: WORK_MAP,
   },
   // Folha #4 (tickets/Google Earth) — tabela com ADDRESS + Estado.
   earth_address: {
-    name: 'earth_address', country: 'FR', zona: 'Isère', defaultTeam: null,
+    name: 'earth_address', department: 'ERT38', country: 'FR', zona: 'Isère', defaultTeam: null,
     stateFrom: ['estado', 'status'],
     map: {
       denominacao:   ['nome id', 'nome-id', 'descricao'],

@@ -1,5 +1,6 @@
 // Orquestrador de importação: {headers, rows} + perfil -> upsert em `works`,
-// com geocodificação opcional e relatório detalhado. Idempotente por import_key.
+// com associação de departamento, preenchimento de SRO-BPI/commune a partir do
+// catálogo de PMs, geocodificação opcional e relatório. Idempotente por import_key.
 import { query } from '../db.js';
 import { resolveColumns, transformRow } from './transform.js';
 import { geocodeWork } from '../lib/geocode.js';
@@ -11,41 +12,66 @@ async function teamMap() {
   return m;
 }
 
+// Departamento (por código) — para associar id e alinhar country/zona.
+async function deptByCode(code) {
+  if (!code) return null;
+  const { rows } = await query('SELECT id, code, country, zona FROM departments WHERE code = $1', [code]);
+  return rows[0] || null;
+}
+
+// Mapa PM -> { commune, sro_bpi } do departamento (para autopreenchimento).
+async function pmMap(departmentId) {
+  const m = new Map();
+  if (!departmentId) return m;
+  const { rows } = await query('SELECT pm, commune, sro_bpi FROM department_pms WHERE department_id = $1', [departmentId]);
+  for (const r of rows) m.set(r.pm.toLowerCase().trim(), r);
+  return m;
+}
+
 async function upsert(rec) {
   const { rows } = await query(
     `INSERT INTO works
-       (id_ordem, denominacao, pm, commune, tipo_trabalho, cdt, tarefas, ticket_ref,
-        morada, descricao, estado, pendente_motivo, country, zona, team_id, source, import_key, lat, lng, geocoded)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+       (id_ordem, denominacao, pm, commune, sro_bpi, tipo_trabalho, cdt, tarefas, ticket_ref,
+        morada, descricao, estado, pendente_motivo, country, zona, department_id, team_id,
+        source, import_key, lat, lng, geocoded)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
      ON CONFLICT (import_key) DO UPDATE SET
        denominacao=EXCLUDED.denominacao, pm=EXCLUDED.pm, commune=EXCLUDED.commune,
-       tipo_trabalho=EXCLUDED.tipo_trabalho, cdt=EXCLUDED.cdt, tarefas=EXCLUDED.tarefas,
-       ticket_ref=EXCLUDED.ticket_ref, morada=EXCLUDED.morada, descricao=EXCLUDED.descricao,
-       estado=EXCLUDED.estado, pendente_motivo=EXCLUDED.pendente_motivo,
+       sro_bpi=EXCLUDED.sro_bpi, tipo_trabalho=EXCLUDED.tipo_trabalho, cdt=EXCLUDED.cdt,
+       tarefas=EXCLUDED.tarefas, ticket_ref=EXCLUDED.ticket_ref, morada=EXCLUDED.morada,
+       descricao=EXCLUDED.descricao, estado=EXCLUDED.estado, pendente_motivo=EXCLUDED.pendente_motivo,
        country=EXCLUDED.country, zona=EXCLUDED.zona,
+       department_id=COALESCE(EXCLUDED.department_id, works.department_id),
        team_id=COALESCE(EXCLUDED.team_id, works.team_id), source=EXCLUDED.source,
        lat=COALESCE(EXCLUDED.lat, works.lat), lng=COALESCE(EXCLUDED.lng, works.lng),
        geocoded=works.geocoded OR EXCLUDED.geocoded
      RETURNING (xmax = 0) AS inserted`,
-    [rec.id_ordem, rec.denominacao, rec.pm, rec.commune, rec.tipo_trabalho, rec.cdt, rec.tarefas,
-     rec.ticket_ref, rec.morada, rec.descricao, rec.estado, rec.pendente_motivo || null,
-     rec.country, rec.zona, rec.team_id || null,
+    [rec.id_ordem, rec.denominacao, rec.pm, rec.commune, rec.sro_bpi || null, rec.tipo_trabalho, rec.cdt,
+     rec.tarefas, rec.ticket_ref, rec.morada, rec.descricao, rec.estado, rec.pendente_motivo || null,
+     rec.country, rec.zona, rec.department_id || null, rec.team_id || null,
      rec.source, rec.import_key, rec.lat ?? null, rec.lng ?? null, !!rec.geocoded]
   );
   return rows[0].inserted;
 }
 
-// options: { dryRun, geocode (bool) }
+// options: { dryRun, geocode (bool), departmentCode (override) }
 export async function runImport({ headers, rows }, profile, options = {}) {
-  const { dryRun = false, geocode = true } = options;
+  const { dryRun = false, geocode = true, departmentCode } = options;
   const cols = resolveColumns(headers, profile);
-  const teams = dryRun ? new Map() : await teamMap();
+
+  // Departamento (override CLI > perfil). Leituras à DB são seguras mesmo em dry-run.
+  const code = departmentCode || profile.department || null;
+  const dept = await deptByCode(code);
+  const teams = await teamMap();
+  const pms = await pmMap(dept?.id);
 
   const report = {
     source: profile.name, totalRows: rows.length,
     resolvedColumns: cols,
+    department: dept?.code || null,
+    departmentMissing: code && !dept ? code : null,
     imported: 0, updated: 0, skipped: 0,
-    stateUnmatched: 0, geocoded: 0, geocodeFailed: 0, needGeocode: 0,
+    stateUnmatched: 0, geocoded: 0, geocodeFailed: 0, needGeocode: 0, pmBackfilled: 0,
     byState: {}, byZona: {}, unmatchedStateSamples: [], skipReasons: {},
   };
 
@@ -57,6 +83,20 @@ export async function runImport({ headers, rows }, profile, options = {}) {
       continue;
     }
     const rec = out.record;
+
+    // Departamento: associa o id e alinha country/zona com o do departamento.
+    if (dept) { rec.department_id = dept.id; rec.country = dept.country; rec.zona = dept.zona; }
+
+    // Preenche SRO-BPI (e commune em falta) a partir do catálogo de PMs.
+    if (rec.pm) {
+      const p = pms.get(rec.pm.toLowerCase().trim());
+      if (p) {
+        rec.sro_bpi = p.sro_bpi || rec.sro_bpi || null;
+        if (!rec.commune && p.commune) rec.commune = p.commune;
+        report.pmBackfilled++;
+      }
+    }
+
     report.byState[rec.estado] = (report.byState[rec.estado] || 0) + 1;
     report.byZona[rec.zona] = (report.byZona[rec.zona] || 0) + 1;
     if (!out.report.stateMatched) {
@@ -68,7 +108,7 @@ export async function runImport({ headers, rows }, profile, options = {}) {
     // Equipa
     if (rec.teamName) rec.team_id = teams.get(rec.teamName.toLowerCase().trim()) || null;
 
-    // Geocodificação
+    // Geocodificação (escreve em cache -> só fora de dry-run)
     const needsGeo = !rec.lat && (rec.morada || rec.commune);
     if (needsGeo) report.needGeocode++;
     if (needsGeo && geocode && !dryRun) {

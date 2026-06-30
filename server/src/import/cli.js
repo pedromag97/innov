@@ -29,7 +29,7 @@ async function main() {
   if (!args.source) throw new Error('--source <perfil> obrigatório');
   const profile = getProfile(args.source);
   const headerRow = args['header-row'] != null ? parseInt(args['header-row'], 10) : 0;
-  const opts = { dryRun: !!args['dry-run'], geocode: !args['no-geocode'] };
+  const opts = { dryRun: !!args['dry-run'], geocode: !args['no-geocode'], departmentCode: args.department || null };
 
   // Recolhe lotes {headers, rows} de CSV ou Sheets.
   const batches = [];
@@ -43,14 +43,15 @@ async function main() {
     throw new Error('Indica a origem: --csv <ficheiro> ou --sheet <id>');
   }
 
-  console.log(`\n=== IMPORT (${profile.name}) ${opts.dryRun ? '[DRY-RUN]' : ''} geocode=${opts.geocode} ===`);
-  const totals = { imported: 0, updated: 0, skipped: 0, geocoded: 0, geocodeFailed: 0, needGeocode: 0, stateUnmatched: 0 };
+  console.log(`\n=== IMPORT (${profile.name}) ${opts.dryRun ? '[DRY-RUN]' : ''} dept=${opts.departmentCode || profile.department || '—'} geocode=${opts.geocode} ===`);
+  const totals = { imported: 0, updated: 0, skipped: 0, geocoded: 0, geocodeFailed: 0, needGeocode: 0, stateUnmatched: 0, pmBackfilled: 0 };
   const byState = {};
   for (const batch of batches) {
     const r = await runImport(batch, profile, opts);
     for (const k of Object.keys(totals)) totals[k] += r[k] || 0;
     for (const [s, n] of Object.entries(r.byState)) byState[s] = (byState[s] || 0) + n;
-    console.log(`  lote: ${r.totalRows} linhas -> +${r.imported} novos, ~${r.updated} atualizados, ${r.skipped} ignorados`);
+    if (r.departmentMissing) console.log(`    ⚠ departamento "${r.departmentMissing}" não existe na DB — trabalhos ficam sem departamento`);
+    console.log(`  lote: ${r.totalRows} linhas -> +${r.imported} novos, ~${r.updated} atualizados, ${r.skipped} ignorados (dept=${r.department || '—'}, PMs preenchidos=${r.pmBackfilled})`);
     if (Object.keys(r.resolvedColumns).length) console.log('    colunas:', Object.keys(r.resolvedColumns).join(', '));
     if (r.unmatchedStateSamples.length) console.log('    estados não reconhecidos (amostra):', r.unmatchedStateSamples.slice(0, 8).join(' | '));
   }
