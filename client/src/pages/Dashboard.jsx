@@ -162,13 +162,17 @@ export default function Dashboard() {
                     <button key={w.id} onClick={() => navigate(`/trabalhos/${w.id}/editar`)}
                       className={`w-full text-left p-3 hover:bg-slate-50 flex items-start justify-between gap-2 ${isEntregue(w) ? 'border-l-4 border-emerald-600 bg-emerald-50/40' : ''}`}>
                       <span className="min-w-0">
-                        <span className="font-medium text-slate-800">{w.pm || w.id_ordem}</span>
+                        <span className="flex items-center gap-2">
+                          <span className="font-medium text-slate-800">{w.pm || w.id_ordem}</span>
+                          {w.tipo_trabalho && (
+                            <span className="rounded bg-slate-800 text-white text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5">
+                              {w.tipo_trabalho}
+                            </span>
+                          )}
+                        </span>
                         <span className="block text-sm text-slate-500 truncate">{w.denominacao}</span>
                         <span className="block text-xs text-slate-400">
-                          {[w.commune || w.zona, w.tipo_trabalho].filter(Boolean).join(' · ')}
-                        </span>
-                        <span className="block text-xs text-slate-400">
-                          {[w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
+                          {[w.commune || w.zona, w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
                         </span>
                       </span>
                       <StateBadge code={w.estado} motivo={w.pendente_motivo} />

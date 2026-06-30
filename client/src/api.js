@@ -69,6 +69,20 @@ const realApi = {
   createDepartment: (body) => request('POST', '/departments', { body }),
   updateDepartment: (id, body) => request('PATCH', `/departments/${id}`, { body }),
 
+  // catálogos por departamento (tipos de trabalho + CDTs)
+  listWorkTypes: (department_id, all) => {
+    const qs = new URLSearchParams({ ...(department_id ? { department_id } : {}), ...(all ? { all: '1' } : {}) });
+    return request('GET', `/work-types${qs.toString() ? '?' + qs : ''}`);
+  },
+  createWorkType: (body) => request('POST', '/work-types', { body }),
+  updateWorkType: (id, body) => request('PATCH', `/work-types/${id}`, { body }),
+  listCdts: (department_id, all) => {
+    const qs = new URLSearchParams({ ...(department_id ? { department_id } : {}), ...(all ? { all: '1' } : {}) });
+    return request('GET', `/cdts${qs.toString() ? '?' + qs : ''}`);
+  },
+  createCdt: (body) => request('POST', '/cdts', { body }),
+  updateCdt: (id, body) => request('PATCH', `/cdts/${id}`, { body }),
+
   // deliveries (fila de entrega ao operador)
   listDeliveries: () => request('GET', '/deliveries'),
   deliverWork: (id) => request('POST', `/deliveries/${id}/deliver`),

@@ -30,6 +30,19 @@ function deptForZona(z) {
   return z ? (m[z.toLowerCase()] || null) : null;
 }
 
+// Catálogos por departamento (tipos de trabalho + CDTs). 1=ERT45, 2=ERT38, 3=ERT64.
+let catSeq = 1;
+const cat = (department_id, names) => names.map((name) => ({ id: catSeq++, department_id, name, active: true }));
+let workTypesData = [
+  ...cat(1, ['ZMD', 'DEPLOIMENT', 'VTL', 'MAINTENANCE', 'PBO SAT']),
+  ...cat(2, ['DEF INFRA', 'TOP BAD', 'DEPLOIMENT', 'RENFO CABLE', 'ALIGNMENT']),
+  ...cat(3, ['DEPLOIMENT', 'CHAMBRE G', 'MAINTENANCE', 'MAINTENANCE DEFINITIF / REMISE', 'MANTIS', 'POIV', 'PRE FIBRAGE', 'LEVEE DE RESERVES']),
+];
+let cdtsData = [
+  ...cat(2, ['Marcos BRAZIO', 'Joao GORRICHA', 'Alexandre SILVA', 'Luis VIEIRA', 'Amghar MAKHLOUF']),
+  ...cat(3, ['Melanie DESPERBEN', 'Marco MENDES', 'Rogério PINTO', 'Mário PIRES DA COSTA', 'Valdez HETCHOUA', 'Bernardo SILVA', 'CYRIL L.', 'Fabien CORDEIRO', 'Sylvain COTEN']),
+];
+
 const users = [
   { id: 1, email: 'admin@empresa.pt', name: 'Administrador', role: 'ADMIN', team_id: null, countries: ['PT', 'FR'], department_ids: [], active: true, team_name: null },
   { id: 2, email: 'gerente@empresa.pt', name: 'Gerente', role: 'GERENTE', team_id: null, countries: ['PT', 'FR'], department_ids: [], active: true, team_name: null },
@@ -159,6 +172,14 @@ export const demoApi = {
   listDepartments: () => delay({ departments: clone(departments) }),
   createDepartment: (b) => { const d = { ...b, id: nextId++, active: true }; departments.push(d); return delay({ department: d }); },
   updateDepartment: (id, b) => { const d = departments.find((x) => String(x.id) === String(id)); Object.assign(d, b); return delay({ department: clone(d) }); },
+
+  // catálogos por departamento
+  listWorkTypes: (deptId, all) => delay({ items: clone(workTypesData.filter((x) => (!deptId || String(x.department_id) === String(deptId)) && (all || x.active))) }),
+  createWorkType: (b) => { const it = { id: catSeq++, department_id: Number(b.department_id), name: b.name, active: true }; workTypesData.push(it); return delay({ item: it }); },
+  updateWorkType: (id, b) => { const it = workTypesData.find((x) => String(x.id) === String(id)); Object.assign(it, b); return delay({ item: clone(it) }); },
+  listCdts: (deptId, all) => delay({ items: clone(cdtsData.filter((x) => (!deptId || String(x.department_id) === String(deptId)) && (all || x.active))) }),
+  createCdt: (b) => { const it = { id: catSeq++, department_id: Number(b.department_id), name: b.name, active: true }; cdtsData.push(it); return delay({ item: it }); },
+  updateCdt: (id, b) => { const it = cdtsData.find((x) => String(x.id) === String(id)); Object.assign(it, b); return delay({ item: clone(it) }); },
 
   listTeams: () => delay({ teams: clone(teams) }),
   createTeam: (b) => { const t = { ...b, id: nextId++, active: true }; teams.push(t); return delay({ team: t }); },

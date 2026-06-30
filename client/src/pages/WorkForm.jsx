@@ -12,6 +12,13 @@ const EMPTY = {
   estado: 'PENDENTE', pendente_motivo: '', country: 'PT', zona: '', department_id: '', team_id: '',
 };
 
+// Garante que o valor atual (ex.: importado, fora do catálogo) aparece na lista.
+function withCurrent(list, current) {
+  const a = [...list];
+  if (current && !a.includes(current)) a.unshift(current);
+  return a;
+}
+
 export default function WorkForm() {
   const { id } = useParams();
   const isEdit = !!id;
@@ -20,6 +27,8 @@ export default function WorkForm() {
   const [form, setForm] = useState(EMPTY);
   const [teams, setTeams] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [workTypes, setWorkTypes] = useState([]);
+  const [cdts, setCdts] = useState([]);
   const [history, setHistory] = useState([]);
   const [returns, setReturns] = useState([]);
   const [error, setError] = useState('');
@@ -27,6 +36,13 @@ export default function WorkForm() {
 
   useEffect(() => { api.listTeams().then((d) => setTeams(d.teams)).catch(() => {}); }, []);
   useEffect(() => { api.listDepartments().then((d) => setDepartments(d.departments)).catch(() => {}); }, []);
+
+  // Catálogos (tipos de trabalho + CDTs) do departamento escolhido.
+  useEffect(() => {
+    if (!form.department_id) { setWorkTypes([]); setCdts([]); return; }
+    api.listWorkTypes(form.department_id).then((d) => setWorkTypes(d.items.map((x) => x.name))).catch(() => {});
+    api.listCdts(form.department_id).then((d) => setCdts(d.items.map((x) => x.name))).catch(() => {});
+  }, [form.department_id]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -84,8 +100,18 @@ export default function WorkForm() {
         <div className="grid grid-cols-2 gap-3">
           <Field label="PM"><input value={form.pm || ''} onChange={set('pm')} className="inp" placeholder="PM008" /></Field>
           <Field label="Commune"><input value={form.commune || ''} onChange={set('commune')} className="inp" placeholder="SARAN" /></Field>
-          <Field label="Tipo de trabalho"><input value={form.tipo_trabalho || ''} onChange={set('tipo_trabalho')} className="inp" placeholder="ZMD, POIV, DEPLOIMENT…" /></Field>
-          <Field label="CDT (condutor)"><input value={form.cdt || ''} onChange={set('cdt')} className="inp" placeholder="Gilles Gouge" /></Field>
+          <Field label="Tipo de trabalho">
+            <select value={form.tipo_trabalho || ''} onChange={set('tipo_trabalho')} className="inp" disabled={!form.department_id}>
+              <option value="">{form.department_id ? '— escolher —' : '— escolhe o departamento —'}</option>
+              {withCurrent(workTypes, form.tipo_trabalho).map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </Field>
+          <Field label="CDT (condutor)">
+            <select value={form.cdt || ''} onChange={set('cdt')} className="inp" disabled={!form.department_id}>
+              <option value="">{form.department_id ? '— escolher —' : '— escolhe o departamento —'}</option>
+              {withCurrent(cdts, form.cdt).map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </Field>
         </div>
         <Field label="Tarefas"><input value={form.tarefas || ''} onChange={set('tarefas')} className="inp" placeholder="420m 12FO, 1 PBO" /></Field>
         <Field label="Descrição / Observações"><textarea value={form.descricao || ''} onChange={set('descricao')} rows={2} className="inp" /></Field>

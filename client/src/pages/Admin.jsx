@@ -31,6 +31,7 @@ export default function Admin() {
           <Tab id="users" label="Utilizadores" />
           <Tab id="teams" label="Equipas" />
           <Tab id="departments" label="Departamentos" />
+          <Tab id="catalogs" label="Tipos/CDTs" />
         </div>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
@@ -38,6 +39,7 @@ export default function Admin() {
       {tab === 'users' && <UsersPanel users={users} teams={teams} departments={departments} onChange={reload} setError={setError} />}
       {tab === 'teams' && <TeamsPanel teams={teams} onChange={reload} setError={setError} />}
       {tab === 'departments' && <DepartmentsPanel departments={departments} onChange={reload} setError={setError} />}
+      {tab === 'catalogs' && <CatalogsPanel departments={departments} setError={setError} />}
       <Styles />
     </div>
   );
@@ -249,6 +251,73 @@ function DepartmentsPanel({ departments, onChange, setError }) {
         ))}
         {departments.length === 0 && <p className="p-3 text-sm text-slate-400">Sem departamentos.</p>}
       </div>
+    </div>
+  );
+}
+
+// Gestão de tipos de trabalho + CDTs por departamento.
+function CatalogsPanel({ departments, setError }) {
+  const [deptId, setDeptId] = useState('');
+  const [types, setTypes] = useState([]);
+  const [cdts, setCdts] = useState([]);
+
+  async function reload(id = deptId) {
+    if (!id) { setTypes([]); setCdts([]); return; }
+    try {
+      const [t, c] = await Promise.all([api.listWorkTypes(id, true), api.listCdts(id, true)]);
+      setTypes(t.items); setCdts(c.items);
+    } catch (e) { setError(e.message); }
+  }
+  useEffect(() => { reload(); /* eslint-disable-next-line */ }, [deptId]);
+
+  return (
+    <div className="space-y-4">
+      <label className="block max-w-xs">
+        <span className="lbl">Departamento</span>
+        <select value={deptId} onChange={(e) => setDeptId(e.target.value)} className="adm-inp">
+          <option value="">— escolher departamento —</option>
+          {departments.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.country})</option>)}
+        </select>
+      </label>
+
+      {!deptId ? (
+        <p className="text-sm text-slate-400">Escolhe um departamento para gerir os tipos de trabalho e os condutores (CDT).</p>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          <CatalogList title="Tipos de trabalho" items={types}
+            onAdd={(name) => api.createWorkType({ department_id: deptId, name }).then(() => reload()).catch((e) => setError(e.message))}
+            onPatch={(id, body) => api.updateWorkType(id, body).then(() => reload()).catch((e) => setError(e.message))} />
+          <CatalogList title="Condutores (CDT)" items={cdts}
+            onAdd={(name) => api.createCdt({ department_id: deptId, name }).then(() => reload()).catch((e) => setError(e.message))}
+            onPatch={(id, body) => api.updateCdt(id, body).then(() => reload()).catch((e) => setError(e.message))} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CatalogList({ title, items, onAdd, onPatch }) {
+  const [name, setName] = useState('');
+  function add(e) { e.preventDefault(); if (name.trim()) { onAdd(name.trim()); setName(''); } }
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <h3 className="font-semibold text-slate-700 text-sm mb-2">{title}</h3>
+      <form onSubmit={add} className="flex gap-2 mb-3">
+        <input value={name} onChange={(e) => setName(e.target.value)} className="adm-inp flex-1" placeholder="Adicionar…" />
+        <button className="rounded-lg bg-brand text-white px-3 py-2 text-sm hover:bg-brand-dark">+</button>
+      </form>
+      <ul className="divide-y divide-slate-100">
+        {items.map((it) => (
+          <li key={it.id} className={`flex items-center gap-2 py-2 text-sm ${it.active ? '' : 'opacity-50'}`}>
+            <span className="text-slate-700">{it.name}</span>
+            <button onClick={() => onPatch(it.id, { active: !it.active })}
+              className={`ml-auto rounded px-2 py-0.5 text-xs ${it.active ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>
+              {it.active ? 'Ativo' : 'Inativo'}
+            </button>
+          </li>
+        ))}
+        {items.length === 0 && <li className="py-2 text-xs text-slate-400">Vazio.</li>}
+      </ul>
     </div>
   );
 }

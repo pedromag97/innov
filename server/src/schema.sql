@@ -31,6 +31,25 @@ CREATE TABLE IF NOT EXISTS departments (
 );
 
 -- ─────────────────────────────────────────────────────────────────────────
+-- work_types — tipos de trabalho configuráveis POR departamento
+-- department_cdts — condutores de trabalho (CDT) configuráveis POR departamento
+-- ─────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS work_types (
+  id            SERIAL PRIMARY KEY,
+  department_id INTEGER NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+  name          TEXT NOT NULL,
+  active        BOOLEAN NOT NULL DEFAULT TRUE,
+  UNIQUE (department_id, name)
+);
+CREATE TABLE IF NOT EXISTS department_cdts (
+  id            SERIAL PRIMARY KEY,
+  department_id INTEGER NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+  name          TEXT NOT NULL,
+  active        BOOLEAN NOT NULL DEFAULT TRUE,
+  UNIQUE (department_id, name)
+);
+
+-- ─────────────────────────────────────────────────────────────────────────
 -- users — provisionados por admin; login Google só passa se email existir aqui
 -- ─────────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
