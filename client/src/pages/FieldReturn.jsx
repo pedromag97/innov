@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { STATES, PENDENTE_MOTIVOS } from '../states.js';
 import StateBadge from '../components/StateBadge.jsx';
+import CountryFlag from '../components/CountryFlag.jsx';
 
 export default function FieldReturn() {
   const { id } = useParams();
@@ -80,7 +81,7 @@ export default function FieldReturn() {
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <div className="flex items-center justify-between">
           <h1 className="font-bold text-slate-800">{work.id_ordem}</h1>
-          <StateBadge code={work.estado} motivo={work.pendente_motivo} />
+          <span className="flex items-center gap-2"><CountryFlag country={work.country} /><StateBadge code={work.estado} motivo={work.pendente_motivo} /></span>
         </div>
         <p className="text-slate-700">{work.denominacao}</p>
         {work.descricao && <p className="mt-1 text-sm text-slate-500">{work.descricao}</p>}

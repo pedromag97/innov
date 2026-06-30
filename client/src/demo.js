@@ -188,6 +188,7 @@ export const demoApi = {
   listDepartments: () => delay({ departments: clone(departments) }),
   createDepartment: (b) => { const d = { ...b, id: nextId++, active: true }; departments.push(d); return delay({ department: d }); },
   updateDepartment: (id, b) => { const d = departments.find((x) => String(x.id) === String(id)); Object.assign(d, b); return delay({ department: clone(d) }); },
+  clearDepartmentWorks: (id) => { const before = works.length; works = works.filter((w) => String(w.department_id) !== String(id)); return delay({ ok: true, deleted: before - works.length }); },
 
   // catálogos por departamento
   listWorkTypes: (deptId, all) => delay({ items: clone(workTypesData.filter((x) => (!deptId || String(x.department_id) === String(deptId)) && (all || x.active))) }),

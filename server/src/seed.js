@@ -61,8 +61,6 @@ async function main() {
     { id_ordem: 'ORD-1001', denominacao: 'Caixa CTO Av. Liberdade', lat: 38.7223, lng: -9.1393, estado: 'PENDENTE',  motivo: 'GC_ENVIAR_CRVT', country: 'PT', zona: 'Lisboa', dept: null,    team: 'Equipa Centro' },
     { id_ordem: 'ORD-1002', denominacao: 'Poste Rua Augusta',        lat: 38.7100, lng: -9.1369, estado: 'PENDENTE',  motivo: null,             country: 'PT', zona: 'Lisboa', dept: null,    team: 'Equipa Centro' },
     { id_ordem: 'ORD-1006', denominacao: 'CTO Matosinhos',           lat: 41.1844, lng: -8.6916, estado: 'FEITO',     motivo: null,             country: 'PT', zona: 'Porto',  dept: null,    team: 'Equipa Norte'  },
-    { id_ordem: 'SARAN_RAYON_OR',  denominacao: 'Saran — Rayon d\'Or',  lat: 47.9486, lng: 1.8736, estado: 'FEITO',  motivo: null,             country: 'FR', zona: 'Orleans',  dept: 'ERT45', team: 'Valter RIBEIRO' },
-    { id_ordem: 'AUTRY_TIRAGE',    denominacao: 'Autry le Châtel — Tirage', lat: 47.6256, lng: 2.5333, estado: 'NOK', motivo: null,           country: 'FR', zona: 'Orleans',  dept: 'ERT45', team: 'Valter RIBEIRO' },
     { id_ordem: 'ALLEVARD_SAVOIE', denominacao: 'Allevard — de Savoie 12', lat: 45.3936, lng: 6.0747, estado: 'PENDENTE', motivo: 'AGENDAR_RDV', country: 'FR', zona: 'Grenoble', dept: 'ERT38', team: 'Luis BESSA' },
     { id_ordem: 'LAMOTTE_PBO',     denominacao: 'La Motte d\'Aveillans — PBO SAT', lat: 44.9986, lng: 5.7497, estado: 'RETORNO_INCOMPLETO', motivo: null, country: 'FR', zona: 'Grenoble', dept: 'ERT38', team: 'Luis BESSA' },
   ];

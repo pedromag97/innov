@@ -241,6 +241,11 @@ function DepartmentsPanel({ departments, onChange, setError }) {
     } catch (err) { setError(err.message); }
   }
   async function patch(id, b) { try { await api.updateDepartment(id, b); onChange(); } catch (e) { setError(e.message); } }
+  async function clearWorks(d) {
+    if (!confirm(`Apagar TODOS os trabalhos do departamento "${d.name}"? Esta ação não pode ser revertida.`)) return;
+    try { const r = await api.clearDepartmentWorks(d.id); alert(`${r.deleted} trabalho(s) apagado(s) de ${d.name}.`); onChange(); }
+    catch (e) { setError(e.message); }
+  }
   return (
     <div className="space-y-4">
       <form onSubmit={save} className="rounded-xl border border-slate-200 bg-white p-4 flex flex-wrap gap-2 items-end">
@@ -257,6 +262,7 @@ function DepartmentsPanel({ departments, onChange, setError }) {
             <span className="font-medium text-slate-700">{d.name}</span>
             <span className="text-xs rounded bg-slate-100 px-2 py-0.5 text-slate-500">{d.code} · {d.zona || d.country}</span>
             <button onClick={() => setForm({ id: d.id, code: d.code, name: d.name, country: d.country, zona: d.zona || '' })} className="ml-auto text-xs text-brand underline">editar</button>
+            <button onClick={() => clearWorks(d)} className="text-xs text-red-600 underline">apagar trabalhos</button>
             <button onClick={() => patch(d.id, { active: !d.active })} className={`rounded px-2 py-1 text-xs ${d.active ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>{d.active ? 'Ativo' : 'Inativo'}</button>
           </div>
         ))}

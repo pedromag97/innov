@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { STATES, PENDENTE_MOTIVOS } from '../states.js';
 import MapView from '../components/MapView.jsx';
 import StateBadge from '../components/StateBadge.jsx';
+import CountryFlag from '../components/CountryFlag.jsx';
 
 const EMPTY = {
   id_ordem: '', denominacao: '', descricao: '',
@@ -95,7 +96,7 @@ export default function WorkForm() {
       <form onSubmit={onSubmit} className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-slate-800">{isEdit ? 'Editar trabalho' : 'Novo trabalho'}</h1>
-          {isEdit && <StateBadge code={form.estado} motivo={form.pendente_motivo} size="md" />}
+          {isEdit && <span className="flex items-center gap-2"><CountryFlag country={form.country} /><StateBadge code={form.estado} motivo={form.pendente_motivo} size="md" /></span>}
         </div>
 
         <Field label="ID Ordem / Dossier *"><input required value={form.id_ordem} onChange={set('id_ordem')} className="inp" /></Field>

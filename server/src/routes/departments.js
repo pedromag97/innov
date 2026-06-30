@@ -51,4 +51,11 @@ router.patch('/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// DELETE /api/departments/:id/works — apagar TODOS os trabalhos do departamento (admin).
+// Útil para limpar um departamento antes de carregar os trabalhos reais.
+router.delete('/:id/works', requireAdmin, async (req, res) => {
+  const { rowCount } = await query('DELETE FROM works WHERE department_id = $1', [req.params.id]);
+  res.json({ ok: true, deleted: rowCount });
+});
+
 export default router;

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import { useAuth } from '../auth/AuthContext.jsx';
 import StateBadge from '../components/StateBadge.jsx';
+import CountryFlag from '../components/CountryFlag.jsx';
 
 // Fila "A entregar": trabalhos com retorno do terreno, à espera de serem
 // entregues ao cliente/operador. O backoffice revê e marca como Entregue.
@@ -62,7 +63,10 @@ export default function Deliveries() {
                 {[w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
               </div>
             </div>
-            <StateBadge code={w.return_estado || w.estado} motivo={w.pendente_motivo} />
+            <span className="flex flex-col items-end gap-1.5 shrink-0">
+              <StateBadge code={w.return_estado || w.estado} motivo={w.pendente_motivo} />
+              <span className="flex items-center gap-1 text-[10px] text-slate-400">{w.zona}<CountryFlag country={w.country} /></span>
+            </span>
           </div>
 
           {/* Retorno submetido pelo terreno */}

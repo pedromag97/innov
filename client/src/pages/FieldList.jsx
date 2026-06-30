@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { STATES } from '../states.js';
 import MapView from '../components/MapView.jsx';
 import StateBadge from '../components/StateBadge.jsx';
+import CountryFlag from '../components/CountryFlag.jsx';
 
 // Vista da equipa de terreno: mapa read-only + lista dos trabalhos atribuídos.
 export default function FieldList() {
@@ -64,7 +65,10 @@ export default function FieldList() {
                   <span className="block text-sm text-slate-500">{w.denominacao}</span>
                   <span className="block text-xs text-slate-400">{w.zona}</span>
                 </span>
-                <StateBadge code={w.estado} motivo={w.pendente_motivo} />
+                <span className="flex flex-col items-end gap-1.5 shrink-0">
+                  <StateBadge code={w.estado} motivo={w.pendente_motivo} />
+                  <span className="flex items-center gap-1 text-[10px] text-slate-400">{w.zona}<CountryFlag country={w.country} /></span>
+                </span>
               </button>
             ))}
         </div>

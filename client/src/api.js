@@ -68,6 +68,7 @@ const realApi = {
   listDepartments: () => request('GET', '/departments'),
   createDepartment: (body) => request('POST', '/departments', { body }),
   updateDepartment: (id, body) => request('PATCH', `/departments/${id}`, { body }),
+  clearDepartmentWorks: (id) => request('DELETE', `/departments/${id}/works`),
 
   // catálogos por departamento (tipos de trabalho + CDTs)
   listWorkTypes: (department_id, all) => {

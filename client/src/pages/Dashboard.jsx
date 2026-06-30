@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { STATES, stateColor } from '../states.js';
 import MapView from '../components/MapView.jsx';
 import StateBadge from '../components/StateBadge.jsx';
+import CountryFlag from '../components/CountryFlag.jsx';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -177,7 +178,12 @@ export default function Dashboard() {
                           {[w.commune || w.zona, w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
                         </span>
                       </span>
-                      <StateBadge code={w.estado} motivo={w.pendente_motivo} />
+                      <span className="flex flex-col items-end gap-1.5 shrink-0">
+                        <StateBadge code={w.estado} motivo={w.pendente_motivo} />
+                        <span className="flex items-center gap-1 text-[10px] text-slate-400">
+                          {w.zona}<CountryFlag country={w.country} />
+                        </span>
+                      </span>
                     </button>
                   ))}
                 </div>
