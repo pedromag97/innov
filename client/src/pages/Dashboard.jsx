@@ -20,11 +20,11 @@ export default function Dashboard() {
 
   useEffect(() => { api.listTeams().then((d) => setTeams(d.teams)).catch(() => {}); }, []);
   useEffect(() => { api.listDepartments().then((d) => setDepartments(d.departments)).catch(() => {}); }, []);
-  useEffect(() => { api.listWorks({}).then((d) => setAllWorks(d.works)).catch(() => {}); }, []);
+  useEffect(() => { api.listWorks({ active: 1 }).then((d) => setAllWorks(d.works)).catch(() => {}); }, []);
 
   useEffect(() => {
     setLoading(true);
-    api.listWorks(filters)
+    api.listWorks({ ...filters, active: 1 })
       .then((d) => { setWorks(d.works); setError(''); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -44,17 +44,17 @@ export default function Dashboard() {
   const cdts = useMemo(() => distinct('cdt'), [allWorks]);
   const tipos = useMemo(() => distinct('tipo_trabalho'), [allWorks]);
 
-  // Agrupa os trabalhos por departamento (PT/sem-dept caem em grupos próprios).
+  // Agrupa os trabalhos por país + zona/departamento (cada zona/país numa tabela).
   const grouped = useMemo(() => {
     const g = new Map();
     for (const w of works) {
-      const key = w.department_name || (w.country === 'PT' ? 'Portugal' : 'Sem departamento');
-      if (!g.has(key)) g.set(key, []);
-      g.get(key).push(w);
+      const zonaLabel = w.department_name ? `${w.department_name}${w.zona ? ` · ${w.zona}` : ''}` : (w.zona || 'Sem zona');
+      const key = `${w.country || ''}|${zonaLabel}`;
+      if (!g.has(key)) g.set(key, { country: w.country, label: zonaLabel, items: [] });
+      g.get(key).items.push(w);
     }
-    return [...g.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+    return [...g.values()].sort((a, b) => (a.country || '').localeCompare(b.country || '') || a.label.localeCompare(b.label));
   }, [works]);
-  const isEntregue = (w) => w.estado === 'ENTREGUE';
 
   async function doExport(fmt) {
     setExporting(fmt);
@@ -148,23 +148,17 @@ export default function Dashboard() {
             <p className="p-4 text-sm text-slate-500">A carregar…</p>
           ) : works.length === 0 ? (
             <p className="p-4 text-sm text-slate-500">Sem trabalhos para estes filtros.</p>
-          ) : grouped.map(([dept, list]) => {
-            const entregues = list.filter(isEntregue).length;
-            return (
-              <div key={dept}>
+          ) : grouped.map(({ country, label, items }) => (
+              <div key={`${country}|${label}`}>
                 <div className="sticky top-0 z-[1] flex items-center gap-2 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 border-b border-slate-200">
-                  <span>{dept}</span>
-                  <span className="text-slate-400">({list.length})</span>
-                  {entregues > 0 && (
-                    <span className="ml-auto rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">
-                      {entregues} entregue{entregues > 1 ? 's' : ''}
-                    </span>
-                  )}
+                  <CountryFlag country={country} />
+                  <span>{label}</span>
+                  <span className="text-slate-400">({items.length})</span>
                 </div>
                 <div className="divide-y divide-slate-100">
-                  {list.map((w) => (
+                  {items.map((w) => (
                     <button key={w.id} onClick={() => navigate(`/trabalhos/${w.id}/editar`)}
-                      className={`w-full text-left p-3 hover:bg-slate-50 flex items-start justify-between gap-2 ${isEntregue(w) ? 'border-l-4 border-emerald-600 bg-emerald-50/40' : ''}`}>
+                      className="w-full text-left p-3 hover:bg-slate-50 flex items-start justify-between gap-2">
                       <span className="min-w-0">
                         <span className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium text-slate-800">{w.pm || w.id_ordem}</span>
@@ -194,8 +188,7 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
-            );
-          })}
+            ))}
         </div>
       </aside>
     </div>

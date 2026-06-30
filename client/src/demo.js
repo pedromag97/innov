@@ -117,6 +117,7 @@ function filterWorks(params = {}) {
   const user = getDemoUser();
   return works.filter((w) => {
     if (!inScope(w, user)) return false;
+    if (params.active && (w.estado === 'FEITO' || w.estado === 'ENTREGUE')) return false;
     if (params.estado && w.estado !== params.estado) return false;
     if (params.team_id && String(w.team_id) !== String(params.team_id)) return false;
     if (params.country && w.country !== params.country) return false;
@@ -177,15 +178,15 @@ export const demoApi = {
     return delay({ works: clone(list), totals: { departments: [], grand: { count: list.length, valor: 0 } } });
   },
 
-  // Fila de entregas (âmbito por papel).
+  // Fila de entregas = trabalhos FEITO (âmbito por papel).
   listDeliveries: () => {
     const user = getDemoUser();
-    const list = works.filter((w) => w.pending_delivery && inScope(w, user))
-      .map((w) => ({ ...clone(w), ...demoReturns[w.id], return_id: w.id }));
+    const list = works.filter((w) => w.estado === 'FEITO' && inScope(w, user))
+      .map((w) => ({ ...clone(w), ...(demoReturns[w.id] || {}), return_id: w.id }));
     return delay({ deliveries: list });
   },
   deliverWork: (id) => { const w = works.find((x) => String(x.id) === String(id)); if (w) { w.estado = 'ENTREGUE'; w.pending_delivery = false; } delete demoReturns[id]; return delay({ work: clone(w) }); },
-  dismissDelivery: (id) => { const w = works.find((x) => String(x.id) === String(id)); if (w) w.pending_delivery = false; delete demoReturns[id]; return delay({ ok: true }); },
+  dismissDelivery: (id) => { const w = works.find((x) => String(x.id) === String(id)); if (w) { w.estado = 'RETORNO_INCOMPLETO'; w.pending_delivery = false; } delete demoReturns[id]; return delay({ ok: true }); },
 
   listDepartments: () => delay({ departments: clone(departments) }),
   createDepartment: (b) => { const d = { ...b, id: nextId++, active: true }; departments.push(d); return delay({ department: d }); },

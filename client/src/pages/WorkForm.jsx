@@ -108,6 +108,12 @@ export default function WorkForm() {
 
         <Field label="ID Ordem / Dossier *"><input required value={form.id_ordem} onChange={set('id_ordem')} className="inp" /></Field>
         <Field label="Denominação *"><input required value={form.denominacao} onChange={set('denominacao')} className="inp" /></Field>
+        <Field label="Departamento *">
+          <select value={form.department_id || ''} onChange={set('department_id')} className="inp">
+            <option value="">— escolher departamento —</option>
+            {departments.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.country})</option>)}
+          </select>
+        </Field>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="PM"><input value={form.pm || ''} onChange={set('pm')} className="inp" placeholder="PM008" /></Field>
@@ -159,12 +165,6 @@ export default function WorkForm() {
             <select value={form.country} onChange={set('country')} className="inp">
               <option value="PT">Portugal</option>
               <option value="FR">França</option>
-            </select>
-          </Field>
-          <Field label="Departamento">
-            <select value={form.department_id || ''} onChange={set('department_id')} className="inp">
-              <option value="">— sem departamento —</option>
-              {departments.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.country})</option>)}
             </select>
           </Field>
           <Field label={form.department_id ? 'Zona (do departamento)' : 'Zona'}>

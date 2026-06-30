@@ -11,9 +11,10 @@ router.use(requireAuth, requireManageWorks);
 // Devolver ao dashboard é poder de backoffice/gerente/admin (não CDT).
 const requireReturnPower = requireRole('ADMIN', 'GERENTE', 'BACKOFFICE');
 
-// GET /api/deliveries — trabalhos a entregar (com o último retorno + fotos), no âmbito.
+// GET /api/deliveries — trabalhos FEITO (a entregar ao operador), com o último
+// retorno + fotos, no âmbito.
 router.get('/', async (req, res) => {
-  const where = ['w.pending_delivery = true'];
+  const where = ["w.estado = 'FEITO'"];
   const params = [];
   const scope = worksScope(req.user, params.length);
   if (scope.clause) { where.push(scope.clause); params.push(...scope.params); }
@@ -67,16 +68,17 @@ router.post('/:id/deliver', async (req, res) => {
   res.json({ work: rows[0] });
 });
 
-// POST /api/deliveries/:id/dismiss — devolver ao dashboard (sai da fila, mantém o
-// estado para retrabalho). Poder de backoffice/gerente/admin (não CDT).
+// POST /api/deliveries/:id/dismiss — devolver ao dashboard (sai de FEITO ->
+// RETORNO_INCOMPLETO, volta a aparecer no dashboard). Backoffice/gerente/admin.
 router.post('/:id/dismiss', requireReturnPower, async (req, res) => {
   const w = await workScopeRow(req.params.id);
   if (!w) return res.status(404).json({ error: 'Trabalho não encontrado' });
   if (!canMutateWork(req.user, w)) return res.status(403).json({ error: 'Fora do seu âmbito' });
-  await query('UPDATE works SET pending_delivery=false WHERE id=$1', [req.params.id]);
+  const prev = (await query('SELECT estado FROM works WHERE id=$1', [req.params.id])).rows[0]?.estado || null;
+  await query("UPDATE works SET estado='RETORNO_INCOMPLETO', pending_delivery=false WHERE id=$1", [req.params.id]);
   await logHistory({ query: (...a) => query(...a) }, {
     workId: req.params.id, userId: req.user.uid, action: 'UPDATE',
-    field: 'pending_delivery', oldValue: 'true', newValue: 'false', note: 'Devolvido ao dashboard',
+    field: 'estado', oldValue: prev, newValue: 'RETORNO_INCOMPLETO', note: 'Devolvido ao dashboard',
   });
   res.json({ ok: true });
 });

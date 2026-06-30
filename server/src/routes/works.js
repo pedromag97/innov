@@ -43,6 +43,8 @@ router.get('/', async (req, res) => {
   if (department_id) add('w.department_id = ?', department_id);
   if (cdt) add('w.cdt = ?', cdt);
   if (tipo_trabalho) add('w.tipo_trabalho = ?', tipo_trabalho);
+  // Dashboard: só trabalhos ativos (FEITO vai p/ Entregas, ENTREGUE p/ Faturação).
+  if (req.query.active) where.push("w.estado NOT IN ('FEITO','ENTREGUE')");
   if (q) {
     params.push(`%${q}%`);
     const p = `$${params.length}`;
