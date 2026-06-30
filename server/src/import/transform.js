@@ -27,7 +27,7 @@ export function resolveColumns(headers, profile) {
   return resolved;
 }
 
-const EMPTY = new Set(['', '-', '--', 'n/a', 'na']);
+const EMPTY = new Set(['', '-', '--', 'n/a', 'na', '#n/a', '#ref!', '#value!', '#name?', '#div/0!', '#null!']);
 function clean(v) {
   const s = String(v ?? '').trim();
   return EMPTY.has(s.toLowerCase()) ? '' : s;
