@@ -58,6 +58,19 @@ CREATE TABLE IF NOT EXISTS department_cdts (
   UNIQUE (department_id, name)
 );
 
+-- department_pms — catálogo PM -> commune -> SRO-BPI, POR departamento.
+-- Referência para autopreenchimento (commune + SRO-BPI) ao indicar o PM.
+CREATE TABLE IF NOT EXISTS department_pms (
+  id            SERIAL PRIMARY KEY,
+  department_id INTEGER NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+  pm            TEXT NOT NULL,
+  commune       TEXT,
+  sro_bpi       TEXT,
+  active        BOOLEAN NOT NULL DEFAULT TRUE,
+  UNIQUE (department_id, pm)
+);
+CREATE INDEX IF NOT EXISTS idx_dept_pms_dept ON department_pms (department_id);
+
 -- ─────────────────────────────────────────────────────────────────────────
 -- users — provisionados por admin; login Google só passa se email existir aqui
 -- ─────────────────────────────────────────────────────────────────────────

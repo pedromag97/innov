@@ -84,6 +84,12 @@ const realApi = {
   createCdt: (body) => request('POST', '/cdts', { body }),
   updateCdt: (id, body) => request('PATCH', `/cdts/${id}`, { body }),
 
+  // catálogo de PMs por departamento (PM -> commune -> SRO-BPI)
+  listPms: (department_id, q) => {
+    const qs = new URLSearchParams({ ...(department_id ? { department_id } : {}), ...(q ? { q } : {}) });
+    return request('GET', `/pms${qs.toString() ? '?' + qs : ''}`);
+  },
+
   // faturação (entregues + valor + attachement)
   getBilling: (params = {}) => {
     const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null && v !== ''));

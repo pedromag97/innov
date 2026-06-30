@@ -11,7 +11,7 @@ router.use(requireAuth);
 
 // Campos editáveis.
 const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada', 'estado', 'pendente_motivo', 'rdv_data',
-  'country', 'zona', 'department_id', 'team_id', 'pm', 'commune', 'tipo_trabalho', 'cdt', 'tarefas', 'ticket_ref',
+  'country', 'zona', 'department_id', 'team_id', 'pm', 'commune', 'sro_bpi', 'tipo_trabalho', 'cdt', 'tarefas', 'ticket_ref',
   'valor', 'attachement_feito', 'attachement_enviado'];
 
 // Carrega os campos de âmbito de um trabalho (p/ verificações de acesso).
@@ -147,12 +147,16 @@ router.post('/', requireManageWorks, async (req, res) => {
   if (b.department_id) b.zona = await deptZona(b.department_id);
   try {
     const work = await withTransaction(async (client) => {
+      const valor = b.valor === '' || b.valor == null ? null : b.valor;
       const { rows } = await client.query(
-        `INSERT INTO works (id_ordem, denominacao, descricao, lat, lng, morada, estado, pendente_motivo, rdv_data, country, zona, department_id, team_id, created_by)
-         VALUES ($1,$2,$3,$4,$5,$6,COALESCE($7,'PENDENTE'),$8,$9,COALESCE($10,'PT'),$11,$12,$13,$14)
+        `INSERT INTO works (id_ordem, denominacao, descricao, pm, commune, sro_bpi, tipo_trabalho, cdt, tarefas, ticket_ref, valor,
+                            lat, lng, morada, estado, pendente_motivo, rdv_data, country, zona, department_id, team_id, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,COALESCE($15,'PENDENTE'),$16,$17,COALESCE($18,'PT'),$19,$20,$21,$22)
          RETURNING *`,
-        [b.id_ordem, b.denominacao, b.descricao || null, b.lat ?? null, b.lng ?? null, b.morada || null,
-         b.estado || null, motivo, rdv, b.country || null, b.zona || null, b.department_id || null, b.team_id || null, req.user.uid]
+        [b.id_ordem, b.denominacao, b.descricao || null, b.pm || null, b.commune || null, b.sro_bpi || null,
+         b.tipo_trabalho || null, b.cdt || null, b.tarefas || null, b.ticket_ref || null, valor,
+         b.lat ?? null, b.lng ?? null, b.morada || null, b.estado || null, motivo, rdv,
+         b.country || null, b.zona || null, b.department_id || null, b.team_id || null, req.user.uid]
       );
       await logHistory(client, { workId: rows[0].id, userId: req.user.uid, action: 'CREATE', note: b.id_ordem });
       return rows[0];

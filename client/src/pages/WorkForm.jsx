@@ -8,7 +8,7 @@ import CountryFlag from '../components/CountryFlag.jsx';
 
 const EMPTY = {
   id_ordem: '', denominacao: '', descricao: '',
-  pm: '', commune: '', tipo_trabalho: '', cdt: '', tarefas: '', ticket_ref: '', valor: '',
+  pm: '', commune: '', sro_bpi: '', tipo_trabalho: '', cdt: '', tarefas: '', ticket_ref: '', valor: '',
   lat: null, lng: null, morada: '',
   estado: 'PENDENTE', pendente_motivo: '', rdv_data: '', country: 'PT', zona: '', department_id: '', team_id: '',
 };
@@ -30,6 +30,7 @@ export default function WorkForm() {
   const [departments, setDepartments] = useState([]);
   const [workTypes, setWorkTypes] = useState([]);
   const [cdts, setCdts] = useState([]);
+  const [pms, setPms] = useState([]);   // catálogo PM->commune->SRO-BPI do departamento
   const [history, setHistory] = useState([]);
   const [returns, setReturns] = useState([]);
   const [error, setError] = useState('');
@@ -41,9 +42,10 @@ export default function WorkForm() {
   useEffect(() => {
     const dep = form.department_id;
     api.listTeams(dep || undefined).then((d) => setTeams(d.teams)).catch(() => {});
-    if (!dep) { setWorkTypes([]); setCdts([]); return; }
+    if (!dep) { setWorkTypes([]); setCdts([]); setPms([]); return; }
     api.listWorkTypes(dep).then((d) => setWorkTypes(d.items.map((x) => x.name))).catch(() => {});
     api.listCdts(dep).then((d) => setCdts(d.items.map((x) => x.name))).catch(() => {});
+    api.listPms(dep).then((d) => setPms(d.items || [])).catch(() => setPms([]));
     const d = departments.find((x) => String(x.id) === String(dep));
     if (d && d.zona) setForm((f) => (f.zona === d.zona ? f : { ...f, zona: d.zona }));
   }, [form.department_id, departments]);
@@ -60,6 +62,15 @@ export default function WorkForm() {
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const onDragEnd = useCallback(({ lat, lng }) => setForm((f) => ({ ...f, lat, lng })), []);
+
+  // PM em texto livre: ao bater certo com o catálogo, preenche commune + SRO-BPI.
+  const onPm = (e) => {
+    const pm = e.target.value;
+    const match = pms.find((p) => p.pm.toLowerCase() === pm.trim().toLowerCase());
+    setForm((f) => (match
+      ? { ...f, pm, commune: match.commune || f.commune, sro_bpi: match.sro_bpi || f.sro_bpi }
+      : { ...f, pm }));
+  };
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -116,8 +127,15 @@ export default function WorkForm() {
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="PM"><input value={form.pm || ''} onChange={set('pm')} className="inp" placeholder="PM008" /></Field>
+          <Field label="PM">
+            <input value={form.pm || ''} onChange={onPm} className="inp" placeholder="PM008" list="pm-list"
+              autoComplete="off" disabled={!form.department_id} />
+            <datalist id="pm-list">
+              {pms.map((p) => <option key={p.id} value={p.pm}>{p.commune}{p.sro_bpi ? ` · ${p.sro_bpi}` : ''}</option>)}
+            </datalist>
+          </Field>
           <Field label="Commune"><input value={form.commune || ''} onChange={set('commune')} className="inp" placeholder="SARAN" /></Field>
+          <Field label="SRO-BPI"><input value={form.sro_bpi || ''} onChange={set('sro_bpi')} className="inp" placeholder="SRO-BPI-11452216" /></Field>
           <Field label="Tipo de trabalho">
             <select value={form.tipo_trabalho || ''} onChange={set('tipo_trabalho')} className="inp" disabled={!form.department_id}>
               <option value="">{form.department_id ? '— escolher —' : '— escolhe o departamento —'}</option>

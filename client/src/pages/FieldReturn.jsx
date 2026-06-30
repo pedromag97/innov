@@ -102,6 +102,7 @@ export default function FieldReturn() {
         <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-slate-500">
           {work.pm && <><dt className="font-medium">PM</dt><dd>{work.pm}</dd></>}
           {work.commune && <><dt className="font-medium">Commune</dt><dd>{work.commune}</dd></>}
+          {work.sro_bpi && <><dt className="font-medium">SRO-BPI</dt><dd>{work.sro_bpi}</dd></>}
           {work.tipo_trabalho && <><dt className="font-medium">Tipo</dt><dd>{work.tipo_trabalho}</dd></>}
           {work.cdt && <><dt className="font-medium">CDT</dt><dd>{work.cdt}</dd></>}
           {work.zona && <><dt className="font-medium">Zona</dt><dd>{work.zona}</dd></>}

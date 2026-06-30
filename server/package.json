@@ -8,7 +8,8 @@
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "migrate": "node src/migrate.js",
-    "seed": "node src/seed.js"
+    "seed": "node src/seed.js",
+    "seed:pms": "node src/seed-pms.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.12",

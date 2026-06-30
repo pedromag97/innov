@@ -49,6 +49,25 @@ let cdtsData = [
   ...cat(2, ['Marcos BRAZIO', 'Joao GORRICHA', 'Alexandre SILVA', 'Luis VIEIRA', 'Amghar MAKHLOUF']),
   ...cat(3, ['Melanie DESPERBEN', 'Marco MENDES', 'Rogério PINTO', 'Mário PIRES DA COSTA', 'Valdez HETCHOUA', 'Bernardo SILVA', 'CYRIL L.', 'Fabien CORDEIRO', 'Sylvain COTEN']),
 ];
+// Catálogo de PMs por departamento (subconjunto p/ demo). 2=ERT38 (sem SRO-BPI), 3=ERT64 (com).
+let pmSeq = 1;
+const pm64 = (pm, commune, sro_bpi) => ({ id: pmSeq++, department_id: 3, pm, commune, sro_bpi });
+const pm38 = (pm, commune) => ({ id: pmSeq++, department_id: 2, pm, commune, sro_bpi: null });
+let pmsData = [
+  pm64('PM008', 'ST PEE SUR NIVELLE', 'SRO-BPI-11452355'),
+  pm64('PM022', 'ASCAIN', 'SRO-BPI-11487155'),
+  pm64('PM053', 'ESPELETTE', 'SRO-BPI-11642434'),
+  pm64('PM118', 'HASPARREN', 'SRO-BPI-11527477'),
+  pm64('PM150', 'ST JEAN PIED DE PORT', 'SRO-BPI-11549336'),
+  pm64('ARO04', 'ARCANGUES', 'SRO-BPI-11854114'),
+  pm64('UST01', 'USTARITZ', 'SRO-BPI-11345454'),
+  pm38('PM0001', 'LA TOUR-DU-PIN'),
+  pm38('PM0017', 'ALLEVARD'),
+  pm38('PM0057', 'VIZILLE'),
+  pm38('PM0192', 'CHAMROUSSE'),
+  pm38('PM0220', 'LA MURE'),
+];
+
 // Exemplos de retorno (demonstração).
 const setEx = (deptId, name, txt) => { const t = workTypesData.find((x) => x.department_id === deptId && x.name === name); if (t) t.example_return = txt; };
 setEx(1, 'ZMD', 'Enviar: foto da CTO instalada, foto da etiqueta e a medição (metros + nº de fibras). Confirmar continuidade.');
@@ -204,6 +223,7 @@ export const demoApi = {
   listCdts: (deptId, all) => delay({ items: clone(cdtsData.filter((x) => (!deptId || String(x.department_id) === String(deptId)) && (all || x.active))) }),
   createCdt: (b) => { const it = { id: catSeq++, department_id: Number(b.department_id), name: b.name, active: true }; cdtsData.push(it); return delay({ item: it }); },
   updateCdt: (id, b) => { const it = cdtsData.find((x) => String(x.id) === String(id)); Object.assign(it, b); return delay({ item: clone(it) }); },
+  listPms: (deptId, q) => delay({ items: clone(pmsData.filter((x) => (!deptId || String(x.department_id) === String(deptId)) && (!q || x.pm.toLowerCase().startsWith(String(q).toLowerCase())))) }),
 
   listTeams: (deptId) => delay({ teams: clone(deptId ? teams.filter((t) => String(t.department_id) === String(deptId)) : teams) }),
   createTeam: (b) => { const t = { ...b, id: nextId++, active: true }; teams.push(t); return delay({ team: t }); },
