@@ -22,11 +22,12 @@ router.use(requireAuth);
 // form-data: new_estado, observacoes, gps_lat, gps_lng, photos[]
 router.post('/:id/returns', upload.array('photos', 10), async (req, res) => {
   const workId = req.params.id;
-  const { new_estado, observacoes, gps_lat, gps_lng } = req.body || {};
+  const { new_estado, pendente_motivo, observacoes, gps_lat, gps_lng } = req.body || {};
 
   if (!new_estado || !isValidState(new_estado)) {
     return res.status(400).json({ error: 'Estado inválido' });
   }
+  const motivo = new_estado === 'PENDENTE' ? (pendente_motivo || null) : null;
 
   // Resultado da transação: cria retorno, atualiza estado do trabalho, histórico.
   let outcome;
@@ -52,8 +53,8 @@ router.post('/:id/returns', upload.array('photos', 10), async (req, res) => {
       );
       const ret = retRows[0];
 
-      // Atualiza o estado e coloca o trabalho na fila "a entregar".
-      await client.query('UPDATE works SET estado = $1, pending_delivery = true WHERE id = $2', [new_estado, workId]);
+      // Atualiza o estado (+ motivo) e coloca o trabalho na fila "a entregar".
+      await client.query('UPDATE works SET estado = $1, pendente_motivo = $2, pending_delivery = true WHERE id = $3', [new_estado, motivo, workId]);
 
       // Histórico: estado + retorno.
       await logHistory(client, {

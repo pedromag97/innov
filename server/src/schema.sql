@@ -76,7 +76,8 @@ CREATE TABLE IF NOT EXISTS works (
   morada        TEXT,
   geocoded      BOOLEAN NOT NULL DEFAULT FALSE,  -- lat/lng veio de geocodificação
   -- Classificação
-  estado        TEXT NOT NULL DEFAULT 'PENDENTE',   -- código de shared/states.js
+  estado          TEXT NOT NULL DEFAULT 'PENDENTE',  -- código de shared/states.js
+  pendente_motivo TEXT,                              -- motivo (só quando estado = PENDENTE)
   country       TEXT NOT NULL DEFAULT 'PT',          -- 'PT' | 'FR'
   zona          TEXT,                                -- zona/projeto (texto livre) — filtro
   department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,  -- âmbito do CDT

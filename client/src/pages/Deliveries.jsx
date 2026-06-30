@@ -62,7 +62,7 @@ export default function Deliveries() {
                 {[w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
               </div>
             </div>
-            <StateBadge code={w.return_estado || w.estado} />
+            <StateBadge code={w.return_estado || w.estado} motivo={w.pendente_motivo} />
           </div>
 
           {/* Retorno submetido pelo terreno */}

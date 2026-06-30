@@ -15,19 +15,21 @@ async function upsert(rec) {
   const { rows } = await query(
     `INSERT INTO works
        (id_ordem, denominacao, pm, commune, tipo_trabalho, cdt, tarefas, ticket_ref,
-        morada, descricao, estado, country, zona, team_id, source, import_key, lat, lng, geocoded)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
+        morada, descricao, estado, pendente_motivo, country, zona, team_id, source, import_key, lat, lng, geocoded)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
      ON CONFLICT (import_key) DO UPDATE SET
        denominacao=EXCLUDED.denominacao, pm=EXCLUDED.pm, commune=EXCLUDED.commune,
        tipo_trabalho=EXCLUDED.tipo_trabalho, cdt=EXCLUDED.cdt, tarefas=EXCLUDED.tarefas,
        ticket_ref=EXCLUDED.ticket_ref, morada=EXCLUDED.morada, descricao=EXCLUDED.descricao,
-       estado=EXCLUDED.estado, country=EXCLUDED.country, zona=EXCLUDED.zona,
+       estado=EXCLUDED.estado, pendente_motivo=EXCLUDED.pendente_motivo,
+       country=EXCLUDED.country, zona=EXCLUDED.zona,
        team_id=COALESCE(EXCLUDED.team_id, works.team_id), source=EXCLUDED.source,
        lat=COALESCE(EXCLUDED.lat, works.lat), lng=COALESCE(EXCLUDED.lng, works.lng),
        geocoded=works.geocoded OR EXCLUDED.geocoded
      RETURNING (xmax = 0) AS inserted`,
     [rec.id_ordem, rec.denominacao, rec.pm, rec.commune, rec.tipo_trabalho, rec.cdt, rec.tarefas,
-     rec.ticket_ref, rec.morada, rec.descricao, rec.estado, rec.country, rec.zona, rec.team_id || null,
+     rec.ticket_ref, rec.morada, rec.descricao, rec.estado, rec.pendente_motivo || null,
+     rec.country, rec.zona, rec.team_id || null,
      rec.source, rec.import_key, rec.lat ?? null, rec.lng ?? null, !!rec.geocoded]
   );
   return rows[0].inserted;

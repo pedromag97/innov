@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { query, withTransaction } from '../db.js';
 import { requireAuth, requireManageWorks } from '../middleware/auth.js';
-import { isValidState } from '../lib/states.js';
+import { isValidState, isValidMotivo } from '../lib/states.js';
 import { logHistory, logDiff } from '../lib/history.js';
 import { worksScope, canAccessWork, canMutateWork } from '../lib/scope.js';
 
@@ -10,8 +10,8 @@ const router = Router();
 router.use(requireAuth);
 
 // Campos editáveis.
-const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada', 'estado', 'country', 'zona',
-  'department_id', 'team_id', 'pm', 'commune', 'tipo_trabalho', 'cdt', 'tarefas', 'ticket_ref'];
+const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada', 'estado', 'pendente_motivo',
+  'country', 'zona', 'department_id', 'team_id', 'pm', 'commune', 'tipo_trabalho', 'cdt', 'tarefas', 'ticket_ref'];
 
 // Carrega os campos de âmbito de um trabalho (p/ verificações de acesso).
 async function getWorkScopeRow(id) {
@@ -116,6 +116,9 @@ router.post('/', requireManageWorks, async (req, res) => {
   if (b.estado && !isValidState(b.estado)) {
     return res.status(400).json({ error: `Estado inválido: ${b.estado}` });
   }
+  if (b.pendente_motivo && !isValidMotivo(b.pendente_motivo)) {
+    return res.status(400).json({ error: `Motivo inválido: ${b.pendente_motivo}` });
+  }
   if ((b.lat == null || b.lng == null) && !b.morada) {
     return res.status(400).json({ error: 'Indique coordenadas (lat/lng) ou morada' });
   }
@@ -123,14 +126,16 @@ router.post('/', requireManageWorks, async (req, res) => {
   if (!canMutateWork(req.user, { country: b.country || 'PT', department_id: b.department_id || null })) {
     return res.status(403).json({ error: 'Fora do seu âmbito (país/departamento)' });
   }
+  // Motivo só faz sentido em PENDENTE.
+  const motivo = (b.estado || 'PENDENTE') === 'PENDENTE' ? (b.pendente_motivo || null) : null;
   try {
     const work = await withTransaction(async (client) => {
       const { rows } = await client.query(
-        `INSERT INTO works (id_ordem, denominacao, descricao, lat, lng, morada, estado, country, zona, department_id, team_id, created_by)
-         VALUES ($1,$2,$3,$4,$5,$6,COALESCE($7,'PENDENTE'),COALESCE($8,'PT'),$9,$10,$11,$12)
+        `INSERT INTO works (id_ordem, denominacao, descricao, lat, lng, morada, estado, pendente_motivo, country, zona, department_id, team_id, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6,COALESCE($7,'PENDENTE'),$8,COALESCE($9,'PT'),$10,$11,$12,$13)
          RETURNING *`,
         [b.id_ordem, b.denominacao, b.descricao || null, b.lat ?? null, b.lng ?? null, b.morada || null,
-         b.estado || null, b.country || null, b.zona || null, b.department_id || null, b.team_id || null, req.user.uid]
+         b.estado || null, motivo, b.country || null, b.zona || null, b.department_id || null, b.team_id || null, req.user.uid]
       );
       await logHistory(client, { workId: rows[0].id, userId: req.user.uid, action: 'CREATE', note: b.id_ordem });
       return rows[0];
@@ -148,6 +153,11 @@ router.put('/:id', requireManageWorks, async (req, res) => {
   if (b.estado && !isValidState(b.estado)) {
     return res.status(400).json({ error: `Estado inválido: ${b.estado}` });
   }
+  if (b.pendente_motivo && !isValidMotivo(b.pendente_motivo)) {
+    return res.status(400).json({ error: `Motivo inválido: ${b.pendente_motivo}` });
+  }
+  // Se o estado deixa de ser PENDENTE, limpa o motivo automaticamente.
+  if ('estado' in b && b.estado !== 'PENDENTE') b.pendente_motivo = null;
   const updates = EDITABLE.filter((f) => f in b);
   if (updates.length === 0) return res.status(400).json({ error: 'Nada para atualizar' });
 

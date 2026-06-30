@@ -77,6 +77,7 @@ export function transformRow(row, cols, profile) {
     morada: morada || null,
     descricao: get('observacoes') || null,
     estado: st.code,
+    pendente_motivo: st.code === 'PENDENTE' ? (st.motivo || null) : null,
     country: profile.country,
     zona: profile.zona,
     source: profile.name,

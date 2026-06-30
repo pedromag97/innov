@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
-import { STATES } from '../states.js';
+import { STATES, PENDENTE_MOTIVOS } from '../states.js';
 import StateBadge from '../components/StateBadge.jsx';
 
 export default function FieldReturn() {
@@ -10,6 +10,7 @@ export default function FieldReturn() {
 
   const [work, setWork] = useState(null);
   const [estado, setEstado] = useState('');
+  const [motivo, setMotivo] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [files, setFiles] = useState([]);
   const [gps, setGps] = useState(null);     // {lat, lng}
@@ -20,7 +21,7 @@ export default function FieldReturn() {
 
   useEffect(() => {
     api.getWork(id)
-      .then((d) => { setWork(d.work); setEstado(d.work.estado); })
+      .then((d) => { setWork(d.work); setEstado(d.work.estado); setMotivo(d.work.pendente_motivo || ''); })
       .catch((e) => setError(e.message));
   }, [id]);
 
@@ -47,6 +48,7 @@ export default function FieldReturn() {
     setSubmitting(true);
     const fd = new FormData();
     fd.append('new_estado', estado);
+    fd.append('pendente_motivo', estado === 'PENDENTE' ? (motivo || '') : '');
     fd.append('observacoes', observacoes);
     if (gps) { fd.append('gps_lat', gps.lat); fd.append('gps_lng', gps.lng); }
     files.forEach((f) => fd.append('photos', f));
@@ -78,7 +80,7 @@ export default function FieldReturn() {
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <div className="flex items-center justify-between">
           <h1 className="font-bold text-slate-800">{work.id_ordem}</h1>
-          <StateBadge code={work.estado} />
+          <StateBadge code={work.estado} motivo={work.pendente_motivo} />
         </div>
         <p className="text-slate-700">{work.denominacao}</p>
         {work.descricao && <p className="mt-1 text-sm text-slate-500">{work.descricao}</p>}
@@ -105,6 +107,17 @@ export default function FieldReturn() {
             {STATES.filter((s) => s.code !== 'ENTREGUE').map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
           </select>
         </label>
+
+        {estado === 'PENDENTE' && (
+          <label className="block">
+            <span className="block text-xs font-medium text-slate-500 mb-1">Motivo</span>
+            <select value={motivo} onChange={(e) => setMotivo(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <option value="">— sem motivo —</option>
+              {PENDENTE_MOTIVOS.map((m) => <option key={m.code} value={m.code}>{m.label}</option>)}
+            </select>
+          </label>
+        )}
 
         <label className="block">
           <span className="block text-xs font-medium text-slate-500 mb-1">Observações</span>

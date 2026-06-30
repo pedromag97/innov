@@ -171,7 +171,7 @@ export default function Dashboard() {
                           {[w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
                         </span>
                       </span>
-                      <StateBadge code={w.estado} />
+                      <StateBadge code={w.estado} motivo={w.pendente_motivo} />
                     </button>
                   ))}
                 </div>

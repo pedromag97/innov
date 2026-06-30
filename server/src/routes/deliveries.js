@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 
   const { rows } = await query(
     `SELECT w.id, w.id_ordem, w.denominacao, w.pm, w.commune, w.tipo_trabalho, w.cdt,
-            w.estado, w.country, w.zona, w.team_id, t.name AS team_name,
+            w.estado, w.pendente_motivo, w.country, w.zona, w.team_id, t.name AS team_name,
             d.code AS department_code, d.name AS department_name,
             r.id AS return_id, r.new_estado AS return_estado, r.prev_estado,
             r.observacoes AS return_obs, r.gps_lat, r.gps_lng, r.created_at AS return_at,

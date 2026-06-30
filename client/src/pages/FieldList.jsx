@@ -64,7 +64,7 @@ export default function FieldList() {
                   <span className="block text-sm text-slate-500">{w.denominacao}</span>
                   <span className="block text-xs text-slate-400">{w.zona}</span>
                 </span>
-                <StateBadge code={w.estado} />
+                <StateBadge code={w.estado} motivo={w.pendente_motivo} />
               </button>
             ))}
         </div>

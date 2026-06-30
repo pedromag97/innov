@@ -46,20 +46,20 @@ function getDemoUser() {
 
 // Trabalhos de exemplo — mistura PT + França real (Loiret/Isère), estados variados.
 let works = [
-  { id: 1, id_ordem: 'ORD-1001', denominacao: 'Caixa CTO Av. Liberdade', pm: 'PM012', commune: 'Lisboa', tipo_trabalho: 'POIV', cdt: 'Rogério Pinto', tarefas: '120m 12FO, 1 PBO', estado: 'PENDENTE', lat: 38.7223, lng: -9.1393, country: 'PT', zona: 'Lisboa', team_id: 2, team_name: 'Equipa Centro' },
-  { id: 2, id_ordem: 'ORD-1002', denominacao: 'Poste Rua Augusta', pm: 'PM008', commune: 'Lisboa', tipo_trabalho: 'VTL', cdt: 'Marco Mendes', tarefas: '5 LRs', estado: 'A_FAZER', lat: 38.7100, lng: -9.1369, country: 'PT', zona: 'Lisboa', team_id: 2, team_name: 'Equipa Centro' },
-  { id: 3, id_ordem: 'ORD-1003', denominacao: 'Raccordement Boavista', pm: 'PM40A0', commune: 'Porto', tipo_trabalho: 'DEPLOIMENT', cdt: 'Bernardo Silva', tarefas: 'Tirage 300m', estado: 'TIRAGE_OK_FALTA_RACCO', lat: 41.1579, lng: -8.6291, country: 'PT', zona: 'Porto', team_id: 1, team_name: 'Equipa Norte' },
-  { id: 4, id_ordem: 'ORD-1006', denominacao: 'CTO Matosinhos', pm: 'PM001', commune: 'Matosinhos', tipo_trabalho: 'ZMD', cdt: 'Rogério Pinto', tarefas: '200m 24FO', estado: 'FEITO', lat: 41.1844, lng: -8.6916, country: 'PT', zona: 'Porto', team_id: 1, team_name: 'Equipa Norte' },
-  { id: 5, id_ordem: 'SARAN_DU_RAYON_D_OR_155_1_V1', denominacao: 'Saran — Rayon d\'Or', pm: 'PM008', commune: 'SARAN', tipo_trabalho: 'POIV', cdt: 'Gilles Gouge', tarefas: '420m 12FO, 1 PBO', estado: 'FEITO', lat: 47.9486, lng: 1.8736, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
-  { id: 6, id_ordem: 'RACCO - PM1007', denominacao: 'Saint Sigismond — Racco', pm: 'PM1007', commune: 'SAINT SIGISMOND', tipo_trabalho: 'DEPLOIMENT - PMs', cdt: 'Martinez', tarefas: 'BPE-004 → PBO065', estado: 'A_FAZER', lat: 47.9856, lng: 1.6377, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
-  { id: 7, id_ordem: 'PM42A1 AUTRY LE CHATEL', denominacao: 'Autry le Châtel — Tirage', pm: 'PM42A1', commune: 'AUTRY LE CHATEL', tipo_trabalho: 'DEPLOIMENT - PONTAS', cdt: 'Emilie Chassinat', tarefas: 'reste 200m tirage', estado: 'NOK', lat: 47.6256, lng: 2.5333, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
-  { id: 8, id_ordem: 'SARAN_DE_CHARTRES_169', denominacao: 'Saran — de Chartres', pm: 'PM015', commune: 'SARAN', tipo_trabalho: 'ZMD', cdt: 'Gilles Gouge', tarefas: '— (RDV + nacelle)', estado: 'PENDENTE_GC', lat: 47.9531, lng: 1.8902, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
-  { id: 9, id_ordem: 'ALLEVARD_DE_SAVOIE_12', denominacao: 'Allevard — de Savoie 12', pm: 'PM0535', commune: 'ALLEVARD', tipo_trabalho: 'DEF INFRA', cdt: 'João Gorricha', tarefas: 'BE-001 + 12 fusões', estado: 'PENDENTE_RDV', lat: 45.3936, lng: 6.0747, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'B - LUIS BESSA' },
-  { id: 10, id_ordem: 'LA_MOTTE_D_AVEILLANS', denominacao: 'La Motte d\'Aveillans — PBO SAT', pm: 'PM0342', commune: 'LA MOTTE D\'AVEILLANS', tipo_trabalho: 'PBO SAT', cdt: 'Amghar Makhlouf', tarefas: 'PBO010 alignement', estado: 'NAO_NO_SUIVI', lat: 44.9986, lng: 5.7497, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'B - LUIS BESSA' },
-  { id: 11, id_ordem: 'HUEZ_882_ROUTE', denominacao: 'Huez — 882 Route d\'Huez', pm: 'PM0079', commune: 'HUEZ', tipo_trabalho: 'ALIGNEMENT', cdt: 'Marcos Brazio', tarefas: 'Raccordement unitaire', estado: 'A_ENVIAR_RETORNO', lat: 45.0921, lng: 6.0689, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'B - LUIS BESSA' },
-  { id: 12, id_ordem: 'LORRIS_NEIGE', denominacao: 'Lorris — Tirage', pm: 'PM2915', commune: 'LORRIS', tipo_trabalho: 'DEPLOIMENT - PONTAS', cdt: 'Emilie Chassinat', tarefas: 'TIRAGE SOUT 1700m', estado: 'PENDENTE_NEVE', lat: 47.8869, lng: 2.5103, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
-  { id: 13, id_ordem: 'INGRE_PAPILLONS', denominacao: 'Ingré — des Papillons', pm: 'PM009', commune: 'INGRÉ', tipo_trabalho: 'ZMD', cdt: 'Gilles Gouge', tarefas: '52m 12FO — retorno enviado', estado: 'ENTREGUE', lat: 47.9319, lng: 1.8264, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
-  { id: 14, id_ordem: 'PAU_CTO_CENTRE', denominacao: 'Pau — CTO Centre', pm: 'PM064', commune: 'PAU', tipo_trabalho: 'POIV', cdt: 'Sylvan Coten', tarefas: '300m 24FO', estado: 'A_FAZER', lat: 43.2951, lng: -0.3708, country: 'FR', zona: 'Pyrénées', team_id: 4, team_name: 'B - LUIS BESSA' },
+  { id: 1, id_ordem: 'ORD-1001', denominacao: 'Caixa CTO Av. Liberdade', pm: 'PM012', commune: 'Lisboa', tipo_trabalho: 'POIV', cdt: 'Rogério Pinto', tarefas: '120m 12FO, 1 PBO', estado: 'PENDENTE', pendente_motivo: 'GC_ENVIAR_CRVT', lat: 38.7223, lng: -9.1393, country: 'PT', zona: 'Lisboa', team_id: 2, team_name: 'Equipa Centro' },
+  { id: 2, id_ordem: 'ORD-1002', denominacao: 'Poste Rua Augusta', pm: 'PM008', commune: 'Lisboa', tipo_trabalho: 'VTL', cdt: 'Marco Mendes', tarefas: '5 LRs', estado: 'PENDENTE', pendente_motivo: null, lat: 38.7100, lng: -9.1369, country: 'PT', zona: 'Lisboa', team_id: 2, team_name: 'Equipa Centro' },
+  { id: 3, id_ordem: 'ORD-1003', denominacao: 'Raccordement Boavista', pm: 'PM40A0', commune: 'Porto', tipo_trabalho: 'DEPLOIMENT', cdt: 'Bernardo Silva', tarefas: 'Tirage 300m', estado: 'TIRAGE_OK_FALTA_RACCO', pendente_motivo: null, lat: 41.1579, lng: -8.6291, country: 'PT', zona: 'Porto', team_id: 1, team_name: 'Equipa Norte' },
+  { id: 4, id_ordem: 'ORD-1006', denominacao: 'CTO Matosinhos', pm: 'PM001', commune: 'Matosinhos', tipo_trabalho: 'ZMD', cdt: 'Rogério Pinto', tarefas: '200m 24FO', estado: 'FEITO', pendente_motivo: null, lat: 41.1844, lng: -8.6916, country: 'PT', zona: 'Porto', team_id: 1, team_name: 'Equipa Norte' },
+  { id: 5, id_ordem: 'SARAN_DU_RAYON_D_OR_155_1_V1', denominacao: 'Saran — Rayon d\'Or', pm: 'PM008', commune: 'SARAN', tipo_trabalho: 'POIV', cdt: 'Gilles Gouge', tarefas: '420m 12FO, 1 PBO', estado: 'FEITO', pendente_motivo: null, lat: 47.9486, lng: 1.8736, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
+  { id: 6, id_ordem: 'RACCO - PM1007', denominacao: 'Saint Sigismond — Racco', pm: 'PM1007', commune: 'SAINT SIGISMOND', tipo_trabalho: 'DEPLOIMENT - PMs', cdt: 'Martinez', tarefas: 'BPE-004 → PBO065', estado: 'PENDENTE', pendente_motivo: null, lat: 47.9856, lng: 1.6377, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
+  { id: 7, id_ordem: 'PM42A1 AUTRY LE CHATEL', denominacao: 'Autry le Châtel — Tirage', pm: 'PM42A1', commune: 'AUTRY LE CHATEL', tipo_trabalho: 'DEPLOIMENT - PONTAS', cdt: 'Emilie Chassinat', tarefas: 'reste 200m tirage', estado: 'NOK', pendente_motivo: null, lat: 47.6256, lng: 2.5333, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
+  { id: 8, id_ordem: 'SARAN_DE_CHARTRES_169', denominacao: 'Saran — de Chartres', pm: 'PM015', commune: 'SARAN', tipo_trabalho: 'ZMD', cdt: 'Gilles Gouge', tarefas: '— (RDV + nacelle)', estado: 'PENDENTE', pendente_motivo: 'GC_ENVIAR_CRVT', lat: 47.9531, lng: 1.8902, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
+  { id: 9, id_ordem: 'ALLEVARD_DE_SAVOIE_12', denominacao: 'Allevard — de Savoie 12', pm: 'PM0535', commune: 'ALLEVARD', tipo_trabalho: 'DEF INFRA', cdt: 'João Gorricha', tarefas: 'BE-001 + 12 fusões', estado: 'PENDENTE', pendente_motivo: 'AGENDAR_RDV', lat: 45.3936, lng: 6.0747, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'B - LUIS BESSA' },
+  { id: 10, id_ordem: 'LA_MOTTE_D_AVEILLANS', denominacao: 'La Motte d\'Aveillans — PBO SAT', pm: 'PM0342', commune: 'LA MOTTE D\'AVEILLANS', tipo_trabalho: 'PBO SAT', cdt: 'Amghar Makhlouf', tarefas: 'PBO010 alignement', estado: 'RETORNO_INCOMPLETO', pendente_motivo: null, lat: 44.9986, lng: 5.7497, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'B - LUIS BESSA' },
+  { id: 11, id_ordem: 'HUEZ_882_ROUTE', denominacao: 'Huez — 882 Route d\'Huez', pm: 'PM0079', commune: 'HUEZ', tipo_trabalho: 'ALIGNEMENT', cdt: 'Marcos Brazio', tarefas: 'Raccordement unitaire', estado: 'RETORNO_INCOMPLETO', pendente_motivo: null, lat: 45.0921, lng: 6.0689, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'B - LUIS BESSA' },
+  { id: 12, id_ordem: 'LORRIS_NEIGE', denominacao: 'Lorris — Tirage', pm: 'PM2915', commune: 'LORRIS', tipo_trabalho: 'DEPLOIMENT - PONTAS', cdt: 'Emilie Chassinat', tarefas: 'TIRAGE SOUT 1700m', estado: 'PENDENTE', pendente_motivo: 'NEVE', lat: 47.8869, lng: 2.5103, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
+  { id: 13, id_ordem: 'INGRE_PAPILLONS', denominacao: 'Ingré — des Papillons', pm: 'PM009', commune: 'INGRÉ', tipo_trabalho: 'ZMD', cdt: 'Gilles Gouge', tarefas: '52m 12FO — retorno enviado', estado: 'ENTREGUE', pendente_motivo: null, lat: 47.9319, lng: 1.8264, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'VALTER RIBEIRO' },
+  { id: 14, id_ordem: 'PAU_CTO_CENTRE', denominacao: 'Pau — CTO Centre', pm: 'PM064', commune: 'PAU', tipo_trabalho: 'POIV', cdt: 'Sylvan Coten', tarefas: '300m 24FO', estado: 'RDV_AGENDADO', pendente_motivo: null, lat: 43.2951, lng: -0.3708, country: 'FR', zona: 'Pyrénées', team_id: 4, team_name: 'B - LUIS BESSA' },
 ];
 
 // Anota cada trabalho com o departamento (via zona) — usado no âmbito do CDT.
@@ -74,7 +74,7 @@ works.forEach((w) => {
 const demoReturns = {
   4: { return_estado: 'FEITO', return_obs: 'CTO instalada, cliente OK.', return_user: 'José Santos', return_at: new Date(Date.now() - 3e7).toISOString(), gps_lat: 41.1846, gps_lng: -8.6918, photos: [] },
   5: { return_estado: 'FEITO', return_obs: 'Tirage concluído, PBO posée.', return_user: 'Valter Ribeiro', return_at: new Date(Date.now() - 5e7).toISOString(), gps_lat: 47.9487, gps_lng: 1.8738, photos: [] },
-  9: { return_estado: 'PENDENTE_RDV', return_obs: 'Necessário RDV com o síndico.', return_user: 'Luis Bessa', return_at: new Date(Date.now() - 9e7).toISOString(), gps_lat: 45.3937, gps_lng: 6.0748, photos: [] },
+  9: { return_estado: 'PENDENTE', return_obs: 'Necessário RDV com o síndico.', return_user: 'Luis Bessa', return_at: new Date(Date.now() - 9e7).toISOString(), gps_lat: 45.3937, gps_lng: 6.0748, photos: [] },
 };
 works.forEach((w) => { if (demoReturns[w.id]) w.pending_delivery = true; });
 
@@ -135,9 +135,11 @@ export const demoApi = {
   submitReturn: (id, fd) => {
     const w = works.find((x) => String(x.id) === String(id));
     const ns = fd.get ? fd.get('new_estado') : null;
+    const mot = fd.get ? fd.get('pendente_motivo') : '';
     const obs = fd.get ? fd.get('observacoes') : '';
     if (w) {
       if (ns) w.estado = ns;
+      w.pendente_motivo = ns === 'PENDENTE' ? (mot || null) : null;
       w.pending_delivery = true; // entra na fila "a entregar"
       demoReturns[w.id] = { return_estado: ns || w.estado, return_obs: obs, return_user: 'Equipa (demo)', return_at: new Date().toISOString(), gps_lat: w.lat, gps_lng: w.lng, photos: [] };
     }

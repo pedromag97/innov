@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
-import { STATES } from '../states.js';
+import { STATES, PENDENTE_MOTIVOS } from '../states.js';
 import MapView from '../components/MapView.jsx';
 import StateBadge from '../components/StateBadge.jsx';
 
@@ -9,7 +9,7 @@ const EMPTY = {
   id_ordem: '', denominacao: '', descricao: '',
   pm: '', commune: '', tipo_trabalho: '', cdt: '', tarefas: '', ticket_ref: '',
   lat: null, lng: null, morada: '',
-  estado: 'PENDENTE', country: 'PT', zona: '', department_id: '', team_id: '',
+  estado: 'PENDENTE', pendente_motivo: '', country: 'PT', zona: '', department_id: '', team_id: '',
 };
 
 export default function WorkForm() {
@@ -50,6 +50,7 @@ export default function WorkForm() {
       lng: form.lng === '' ? null : form.lng,
       team_id: form.team_id || null,
       department_id: form.department_id || null,
+      pendente_motivo: form.estado === 'PENDENTE' ? (form.pendente_motivo || null) : null,
     };
     try {
       if (isEdit) await api.updateWork(id, payload);
@@ -74,7 +75,7 @@ export default function WorkForm() {
       <form onSubmit={onSubmit} className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-slate-800">{isEdit ? 'Editar trabalho' : 'Novo trabalho'}</h1>
-          {isEdit && <StateBadge code={form.estado} size="md" />}
+          {isEdit && <StateBadge code={form.estado} motivo={form.pendente_motivo} size="md" />}
         </div>
 
         <Field label="ID Ordem / Dossier *"><input required value={form.id_ordem} onChange={set('id_ordem')} className="inp" /></Field>
@@ -95,6 +96,14 @@ export default function WorkForm() {
               {STATES.map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
             </select>
           </Field>
+          {form.estado === 'PENDENTE' ? (
+            <Field label="Motivo (pendente)">
+              <select value={form.pendente_motivo || ''} onChange={set('pendente_motivo')} className="inp">
+                <option value="">— sem motivo —</option>
+                {PENDENTE_MOTIVOS.map((m) => <option key={m.code} value={m.code}>{m.label}</option>)}
+              </select>
+            </Field>
+          ) : <div />}
           <Field label="Equipa">
             <select value={form.team_id} onChange={set('team_id')} className="inp">
               <option value="">— sem equipa —</option>
