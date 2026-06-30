@@ -54,9 +54,12 @@ async function upsert(rec) {
   return rows[0].inserted;
 }
 
-// options: { dryRun, geocode (bool), departmentCode (override) }
+// options: { dryRun, geocode (bool), departmentCode (override), activeOnly }
+// activeOnly: ignora trabalhos já concluídos (FEITO/ENTREGUE) — carrega só os abertos.
+const DONE_STATES = new Set(['FEITO', 'ENTREGUE']);
+
 export async function runImport({ headers, rows }, profile, options = {}) {
-  const { dryRun = false, geocode = true, departmentCode } = options;
+  const { dryRun = false, geocode = true, departmentCode, activeOnly = false } = options;
   const cols = resolveColumns(headers, profile);
 
   // Departamento (override CLI > perfil). Leituras à DB são seguras mesmo em dry-run.
@@ -83,6 +86,13 @@ export async function runImport({ headers, rows }, profile, options = {}) {
       continue;
     }
     const rec = out.record;
+
+    // Só os ativos: ignora trabalhos já concluídos (FEITO/ENTREGUE).
+    if (activeOnly && DONE_STATES.has(rec.estado)) {
+      report.skipped++;
+      report.skipReasons['já concluído (FEITO/ENTREGUE)'] = (report.skipReasons['já concluído (FEITO/ENTREGUE)'] || 0) + 1;
+      continue;
+    }
 
     // Departamento: associa o id e alinha country/zona com o do departamento.
     if (dept) { rec.department_id = dept.id; rec.country = dept.country; rec.zona = dept.zona; }

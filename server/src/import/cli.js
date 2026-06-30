@@ -38,7 +38,7 @@ async function main() {
   if (!args.source) throw new Error('--source <perfil> obrigatório');
   const profile = getProfile(args.source);
   const headerRow = args['header-row'] != null ? parseInt(args['header-row'], 10) : 0;
-  const opts = { dryRun: !!args['dry-run'], geocode: !args['no-geocode'], departmentCode: args.department || null };
+  const opts = { dryRun: !!args['dry-run'], geocode: !args['no-geocode'], departmentCode: args.department || null, activeOnly: !!args['active-only'] };
 
   // Recolhe lotes {headers, rows} de CSV ou Sheets.
   const batches = [];
