@@ -43,10 +43,11 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 -- department_cdts — condutores de trabalho (CDT) configuráveis POR departamento
 -- ─────────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS work_types (
-  id            SERIAL PRIMARY KEY,
-  department_id INTEGER NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
-  name          TEXT NOT NULL,
-  active        BOOLEAN NOT NULL DEFAULT TRUE,
+  id             SERIAL PRIMARY KEY,
+  department_id  INTEGER NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+  name           TEXT NOT NULL,
+  example_return TEXT,                          -- exemplo/instruções de retorno p/ a equipa
+  active         BOOLEAN NOT NULL DEFAULT TRUE,
   UNIQUE (department_id, name)
 );
 CREATE TABLE IF NOT EXISTS department_cdts (

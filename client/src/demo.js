@@ -49,6 +49,10 @@ let cdtsData = [
   ...cat(2, ['Marcos BRAZIO', 'Joao GORRICHA', 'Alexandre SILVA', 'Luis VIEIRA', 'Amghar MAKHLOUF']),
   ...cat(3, ['Melanie DESPERBEN', 'Marco MENDES', 'Rogério PINTO', 'Mário PIRES DA COSTA', 'Valdez HETCHOUA', 'Bernardo SILVA', 'CYRIL L.', 'Fabien CORDEIRO', 'Sylvain COTEN']),
 ];
+// Exemplos de retorno (demonstração).
+const setEx = (deptId, name, txt) => { const t = workTypesData.find((x) => x.department_id === deptId && x.name === name); if (t) t.example_return = txt; };
+setEx(1, 'ZMD', 'Enviar: foto da CTO instalada, foto da etiqueta e a medição (metros + nº de fibras). Confirmar continuidade.');
+setEx(2, 'DEF INFRA', 'Enviar: fotos do PBO antes/depois, constat (fibra/tubo/posição) e CRVT se aplicável.');
 
 const users = [
   { id: 1, email: 'admin@empresa.pt', name: 'Administrador', role: 'ADMIN', team_id: null, countries: ['PT', 'FR'], department_ids: [], active: true, team_name: null },

@@ -17,6 +17,7 @@ export default function FieldReturn() {
   const [files, setFiles] = useState([]);
   const [gps, setGps] = useState(null);     // {lat, lng}
   const [gpsStatus, setGpsStatus] = useState('idle'); // idle|locating|ok|error
+  const [example, setExample] = useState('');
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -26,6 +27,15 @@ export default function FieldReturn() {
       .then((d) => { setWork(d.work); setEstado(d.work.estado); setMotivo(d.work.pendente_motivo || ''); setRdv(d.work.rdv_data || ''); })
       .catch((e) => setError(e.message));
   }, [id]);
+
+  // Exemplo de retorno do tipo de trabalho (para a equipa ver o que enviar).
+  useEffect(() => {
+    if (!work?.department_id || !work?.tipo_trabalho) return;
+    api.listWorkTypes(work.department_id).then((d) => {
+      const wt = (d.items || []).find((x) => x.name === work.tipo_trabalho);
+      setExample(wt?.example_return || '');
+    }).catch(() => {});
+  }, [work?.department_id, work?.tipo_trabalho]);
 
   // Captura GPS automaticamente ao abrir o retorno.
   useEffect(() => {
@@ -99,6 +109,14 @@ export default function FieldReturn() {
           {work.lat != null && <><dt className="font-medium">Coords</dt><dd>{work.lat?.toFixed?.(5)}, {work.lng?.toFixed?.(5)}</dd></>}
         </dl>
       </div>
+
+      {/* Exemplo de retorno do tipo de trabalho */}
+      {example && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <div className="text-xs font-semibold text-amber-800 mb-1">📋 Exemplo de retorno ({work.tipo_trabalho})</div>
+          <p className="text-sm text-amber-900 whitespace-pre-wrap">{example}</p>
+        </div>
+      )}
 
       {/* Formulário de retorno */}
       <form onSubmit={onSubmit} className="rounded-xl border border-slate-200 bg-white p-4 space-y-4">

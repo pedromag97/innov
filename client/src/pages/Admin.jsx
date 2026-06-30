@@ -301,7 +301,7 @@ function CatalogsPanel({ departments, setError }) {
         <p className="text-sm text-slate-400">Escolhe um departamento para gerir os tipos de trabalho e os condutores (CDT).</p>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
-          <CatalogList title="Tipos de trabalho" items={types}
+          <CatalogList title="Tipos de trabalho" items={types} withExample
             onAdd={(name) => api.createWorkType({ department_id: deptId, name }).then(() => reload()).catch((e) => setError(e.message))}
             onPatch={(id, body) => api.updateWorkType(id, body).then(() => reload()).catch((e) => setError(e.message))} />
           <CatalogList title="Condutores (CDT)" items={cdts}
@@ -313,9 +313,11 @@ function CatalogsPanel({ departments, setError }) {
   );
 }
 
-function CatalogList({ title, items, onAdd, onPatch }) {
+function CatalogList({ title, items, onAdd, onPatch, withExample }) {
   const [name, setName] = useState('');
+  const [edit, setEdit] = useState(null); // { id, text }
   function add(e) { e.preventDefault(); if (name.trim()) { onAdd(name.trim()); setName(''); } }
+  function saveExample() { onPatch(edit.id, { example_return: edit.text || null }); setEdit(null); }
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <h3 className="font-semibold text-slate-700 text-sm mb-2">{title}</h3>
@@ -325,12 +327,29 @@ function CatalogList({ title, items, onAdd, onPatch }) {
       </form>
       <ul className="divide-y divide-slate-100">
         {items.map((it) => (
-          <li key={it.id} className={`flex items-center gap-2 py-2 text-sm ${it.active ? '' : 'opacity-50'}`}>
-            <span className="text-slate-700">{it.name}</span>
-            <button onClick={() => onPatch(it.id, { active: !it.active })}
-              className={`ml-auto rounded px-2 py-0.5 text-xs ${it.active ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>
-              {it.active ? 'Ativo' : 'Inativo'}
-            </button>
+          <li key={it.id} className={`py-2 text-sm ${it.active ? '' : 'opacity-50'}`}>
+            <div className="flex items-center gap-2">
+              <span className="text-slate-700">{it.name}</span>
+              {withExample && it.example_return && <span title="Tem exemplo de retorno" className="text-emerald-600 text-xs">✓ ex.</span>}
+              {withExample && (
+                <button onClick={() => setEdit(edit?.id === it.id ? null : { id: it.id, text: it.example_return || '' })}
+                  className="text-xs text-brand underline">exemplo</button>
+              )}
+              <button onClick={() => onPatch(it.id, { active: !it.active })}
+                className={`ml-auto rounded px-2 py-0.5 text-xs ${it.active ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>
+                {it.active ? 'Ativo' : 'Inativo'}
+              </button>
+            </div>
+            {withExample && edit?.id === it.id && (
+              <div className="mt-2 space-y-2">
+                <textarea value={edit.text} onChange={(e) => setEdit({ ...edit, text: e.target.value })} rows={3}
+                  className="adm-inp w-full" placeholder="Exemplo/instruções de retorno para a equipa (o que enviar, fotos, etc.)" />
+                <div className="flex gap-2">
+                  <button onClick={saveExample} className="rounded-lg bg-brand text-white px-3 py-1 text-xs hover:bg-brand-dark">Guardar exemplo</button>
+                  <button onClick={() => setEdit(null)} className="text-xs text-slate-500 underline">cancelar</button>
+                </div>
+              </div>
+            )}
           </li>
         ))}
         {items.length === 0 && <li className="py-2 text-xs text-slate-400">Vazio.</li>}

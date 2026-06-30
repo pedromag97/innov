@@ -8,8 +8,10 @@ const router = Router();
 router.use(requireAuth);
 
 // Fábrica de rotas CRUD para uma tabela de catálogo (work_types | department_cdts).
-function catalogRoutes(table) {
+// extra = colunas adicionais a expor/editar (ex.: example_return em work_types).
+function catalogRoutes(table, extra = []) {
   const r = Router();
+  const cols = ['id', 'department_id', 'name', ...extra, 'active'].join(', ');
 
   // GET ?department_id= — lista (filtrada por departamento se indicado).
   r.get('/', async (req, res) => {
@@ -19,7 +21,7 @@ function catalogRoutes(table) {
     if (department_id) { params.push(department_id); where.push(`department_id = $${params.length}`); }
     if (!all) where.push('active = true');
     const { rows } = await query(
-      `SELECT id, department_id, name, active FROM ${table}
+      `SELECT ${cols} FROM ${table}
        ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
        ORDER BY department_id, name`,
       params
@@ -33,7 +35,7 @@ function catalogRoutes(table) {
     if (!department_id || !name) return res.status(400).json({ error: 'department_id e name obrigatórios' });
     try {
       const { rows } = await query(
-        `INSERT INTO ${table} (department_id, name) VALUES ($1,$2) RETURNING id, department_id, name, active`,
+        `INSERT INTO ${table} (department_id, name) VALUES ($1,$2) RETURNING ${cols}`,
         [department_id, name]
       );
       res.status(201).json({ item: rows[0] });
@@ -43,9 +45,9 @@ function catalogRoutes(table) {
     }
   });
 
-  // PATCH :id { name, active } — editar/ativar (admin).
+  // PATCH :id { name, active, ...extra } — editar/ativar (admin).
   r.patch('/:id', requireAdmin, async (req, res) => {
-    const allowed = ['name', 'active'];
+    const allowed = ['name', 'active', ...extra];
     const b = req.body || {};
     const fields = allowed.filter((f) => f in b);
     if (!fields.length) return res.status(400).json({ error: 'Nada para atualizar' });
@@ -54,7 +56,7 @@ function catalogRoutes(table) {
     values.push(req.params.id);
     try {
       const { rows } = await query(
-        `UPDATE ${table} SET ${set.join(', ')} WHERE id = $${values.length} RETURNING id, department_id, name, active`,
+        `UPDATE ${table} SET ${set.join(', ')} WHERE id = $${values.length} RETURNING ${cols}`,
         values
       );
       if (!rows[0]) return res.status(404).json({ error: 'Não encontrado' });
@@ -68,7 +70,7 @@ function catalogRoutes(table) {
   return r;
 }
 
-router.use('/work-types', catalogRoutes('work_types'));
+router.use('/work-types', catalogRoutes('work_types', ['example_return']));
 router.use('/cdts', catalogRoutes('department_cdts'));
 
 export default router;
