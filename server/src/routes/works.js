@@ -5,14 +5,18 @@ import { requireAuth, requireManageWorks } from '../middleware/auth.js';
 import { isValidState, isValidMotivo } from '../lib/states.js';
 import { logHistory, logDiff } from '../lib/history.js';
 import { worksScope, canAccessWork, canMutateWork } from '../lib/scope.js';
+import { geocodeWork } from '../lib/geocode.js';
 
 const router = Router();
 router.use(requireAuth);
 
 // Campos editáveis.
-const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada', 'estado', 'pendente_motivo', 'rdv_data',
+const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada', 'geocoded', 'estado', 'pendente_motivo', 'rdv_data',
   'country', 'zona', 'department_id', 'team_id', 'pm', 'commune', 'sro_bpi', 'tipo_trabalho', 'cdt', 'tarefas', 'ticket_ref',
   'valor', 'attachement_feito', 'attachement_enviado'];
+
+// Coordenadas em falta? Geocodifica a partir da morada -> commune (degrada suave).
+function hasCoords(lat, lng) { return lat != null && lat !== '' && lng != null && lng !== ''; }
 
 // Carrega os campos de âmbito de um trabalho (p/ verificações de acesso).
 async function getWorkScopeRow(id) {
@@ -129,12 +133,20 @@ router.post('/', requireManageWorks, async (req, res) => {
   if (b.pendente_motivo && !isValidMotivo(b.pendente_motivo)) {
     return res.status(400).json({ error: `Motivo inválido: ${b.pendente_motivo}` });
   }
-  if ((b.lat == null || b.lng == null) && !b.morada) {
-    return res.status(400).json({ error: 'Indique coordenadas (lat/lng) ou morada' });
+  if (!hasCoords(b.lat, b.lng) && !b.morada && !b.commune) {
+    return res.status(400).json({ error: 'Indique coordenadas, morada ou commune' });
   }
   // Âmbito: só pode criar dentro do seu país/departamento.
   if (!canMutateWork(req.user, { country: b.country || 'PT', department_id: b.department_id || null })) {
     return res.status(403).json({ error: 'Fora do seu âmbito (país/departamento)' });
+  }
+  // Geocodificação automática: sem coordenadas, obtém-as da morada -> commune.
+  let lat = hasCoords(b.lat, b.lng) ? b.lat : null;
+  let lng = hasCoords(b.lat, b.lng) ? b.lng : null;
+  let geocoded = false;
+  if (lat == null) {
+    const g = await geocodeWork({ morada: b.morada, commune: b.commune, country: b.country || 'PT' });
+    if (g.found) { lat = g.lat; lng = g.lng; geocoded = true; }
   }
   // Motivo só faz sentido em PENDENTE.
   const motivo = (b.estado || 'PENDENTE') === 'PENDENTE' ? (b.pendente_motivo || null) : null;
@@ -150,12 +162,12 @@ router.post('/', requireManageWorks, async (req, res) => {
       const valor = b.valor === '' || b.valor == null ? null : b.valor;
       const { rows } = await client.query(
         `INSERT INTO works (id_ordem, denominacao, descricao, pm, commune, sro_bpi, tipo_trabalho, cdt, tarefas, ticket_ref, valor,
-                            lat, lng, morada, estado, pendente_motivo, rdv_data, country, zona, department_id, team_id, created_by)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,COALESCE($15,'PENDENTE'),$16,$17,COALESCE($18,'PT'),$19,$20,$21,$22)
+                            lat, lng, geocoded, morada, estado, pendente_motivo, rdv_data, country, zona, department_id, team_id, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,COALESCE($16,'PENDENTE'),$17,$18,COALESCE($19,'PT'),$20,$21,$22,$23)
          RETURNING *`,
         [b.id_ordem, b.denominacao, b.descricao || null, b.pm || null, b.commune || null, b.sro_bpi || null,
          b.tipo_trabalho || null, b.cdt || null, b.tarefas || null, b.ticket_ref || null, valor,
-         b.lat ?? null, b.lng ?? null, b.morada || null, b.estado || null, motivo, rdv,
+         lat, lng, geocoded, b.morada || null, b.estado || null, motivo, rdv,
          b.country || null, b.zona || null, b.department_id || null, b.team_id || null, req.user.uid]
       );
       await logHistory(client, { workId: rows[0].id, userId: req.user.uid, action: 'CREATE', note: b.id_ordem });
@@ -183,6 +195,11 @@ router.put('/:id', requireManageWorks, async (req, res) => {
   if ('estado' in b && b.estado !== 'RDV_AGENDADO') b.rdv_data = null;
   // Se muda de departamento, a zona acompanha a do departamento.
   if ('department_id' in b && b.department_id) b.zona = await deptZona(b.department_id);
+  // Geocodificação automática: ao editar morada/commune sem coordenadas, obtém-as.
+  if (('morada' in b || 'commune' in b) && !hasCoords(b.lat, b.lng)) {
+    const g = await geocodeWork({ morada: b.morada, commune: b.commune, country: b.country });
+    if (g.found) { b.lat = g.lat; b.lng = g.lng; b.geocoded = true; }
+  }
   const updates = EDITABLE.filter((f) => f in b);
   if (updates.length === 0) return res.status(400).json({ error: 'Nada para atualizar' });
 
