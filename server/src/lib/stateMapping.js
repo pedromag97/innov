@@ -25,6 +25,8 @@ const RULES = [
   [/necessario rdv|necessaire rdv|agendar rdv|prendre rdv|besoin.*rdv|attente rdv|\brdv\b|rendez/, 'PENDENTE', 'AGENDAR_RDV'],
   [/retorno incompleto|retour incomplet|a enviar retorno|retour a envoyer|retour a enviar|nao esta no suivi|pas dans le suivi|introuvable.*suivi/, 'RETORNO_INCOMPLETO', null],
   [/\bnok\b/,                                                             'NOK',                   null],
+  // Uma data isolada na coluna de estado/retorno = concluído/enviado nessa data.
+  [/^\d{1,2}[\/.\-]\d{1,2}([\/.\-]\d{2,4})?$/,                            'FEITO',                 null],
   [/a fazer|a faire|att a fazer/,                                         'PENDENTE',              null],
   [/feito|\bfait\b|termine|^ok\b|^ok-|^ok /,                              'FEITO',                 null],
   [/aguarda|attente|en attente|odeon|bloque|bloquead|em espera|en espera|\bespera\b|novo estudo|nouvelle etude/, 'PENDENTE', null],
