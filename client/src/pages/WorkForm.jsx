@@ -7,7 +7,7 @@ import StateBadge from '../components/StateBadge.jsx';
 
 const EMPTY = {
   id_ordem: '', denominacao: '', descricao: '',
-  pm: '', commune: '', tipo_trabalho: '', cdt: '', tarefas: '', ticket_ref: '',
+  pm: '', commune: '', tipo_trabalho: '', cdt: '', tarefas: '', ticket_ref: '', valor: '',
   lat: null, lng: null, morada: '',
   estado: 'PENDENTE', pendente_motivo: '', country: 'PT', zona: '', department_id: '', team_id: '',
 };
@@ -70,6 +70,7 @@ export default function WorkForm() {
       team_id: form.team_id || null,
       department_id: form.department_id || null,
       pendente_motivo: form.estado === 'PENDENTE' ? (form.pendente_motivo || null) : null,
+      valor: form.valor === '' || form.valor == null ? null : Number(form.valor),
     };
     try {
       if (isEdit) await api.updateWork(id, payload);
@@ -116,7 +117,10 @@ export default function WorkForm() {
             </select>
           </Field>
         </div>
-        <Field label="Tarefas"><input value={form.tarefas || ''} onChange={set('tarefas')} className="inp" placeholder="420m 12FO, 1 PBO" /></Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Tarefas"><input value={form.tarefas || ''} onChange={set('tarefas')} className="inp" placeholder="420m 12FO, 1 PBO" /></Field>
+          <Field label="Valor (€)"><input type="number" step="0.01" min="0" value={form.valor ?? ''} onChange={set('valor')} className="inp" placeholder="0.00" /></Field>
+        </div>
         <Field label="Descrição / Observações"><textarea value={form.descricao || ''} onChange={set('descricao')} rows={2} className="inp" /></Field>
 
         <div className="grid grid-cols-2 gap-3">

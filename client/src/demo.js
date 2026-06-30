@@ -71,14 +71,14 @@ let works = [
   { id: 3, id_ordem: 'ORD-1003', denominacao: 'Raccordement Boavista', pm: 'PM40A0', commune: 'Porto', tipo_trabalho: 'DEPLOIMENT', cdt: 'Bernardo Silva', tarefas: 'Tirage 300m', estado: 'TIRAGE_OK_FALTA_RACCO', pendente_motivo: null, lat: 41.1579, lng: -8.6291, country: 'PT', zona: 'Porto', team_id: 1, team_name: 'Equipa Norte' },
   { id: 4, id_ordem: 'ORD-1006', denominacao: 'CTO Matosinhos', pm: 'PM001', commune: 'Matosinhos', tipo_trabalho: 'ZMD', cdt: 'Rogério Pinto', tarefas: '200m 24FO', estado: 'FEITO', pendente_motivo: null, lat: 41.1844, lng: -8.6916, country: 'PT', zona: 'Porto', team_id: 1, team_name: 'Equipa Norte' },
   { id: 5, id_ordem: 'SARAN_DU_RAYON_D_OR_155_1_V1', denominacao: 'Saran — Rayon d\'Or', pm: 'PM008', commune: 'SARAN', tipo_trabalho: 'POIV', cdt: 'Gilles Gouge', tarefas: '420m 12FO, 1 PBO', estado: 'FEITO', pendente_motivo: null, lat: 47.9486, lng: 1.8736, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'Valter RIBEIRO' },
-  { id: 6, id_ordem: 'RACCO - PM1007', denominacao: 'Saint Sigismond — Racco', pm: 'PM1007', commune: 'SAINT SIGISMOND', tipo_trabalho: 'DEPLOIMENT - PMs', cdt: 'Martinez', tarefas: 'BPE-004 → PBO065', estado: 'PENDENTE', pendente_motivo: null, lat: 47.9856, lng: 1.6377, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'Valter RIBEIRO' },
+  { id: 6, id_ordem: 'RACCO - PM1007', denominacao: 'Saint Sigismond — Racco', pm: 'PM1007', commune: 'SAINT SIGISMOND', tipo_trabalho: 'DEPLOIMENT - PMs', cdt: 'Martinez', tarefas: 'BPE-004 → PBO065', estado: 'ENTREGUE', pendente_motivo: null, valor: 980, attachement_feito: true, attachement_enviado: true, lat: 47.9856, lng: 1.6377, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'Valter RIBEIRO' },
   { id: 7, id_ordem: 'PM42A1 AUTRY LE CHATEL', denominacao: 'Autry le Châtel — Tirage', pm: 'PM42A1', commune: 'AUTRY LE CHATEL', tipo_trabalho: 'DEPLOIMENT - PONTAS', cdt: 'Emilie Chassinat', tarefas: 'reste 200m tirage', estado: 'NOK', pendente_motivo: null, lat: 47.6256, lng: 2.5333, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'Valter RIBEIRO' },
   { id: 8, id_ordem: 'SARAN_DE_CHARTRES_169', denominacao: 'Saran — de Chartres', pm: 'PM015', commune: 'SARAN', tipo_trabalho: 'ZMD', cdt: 'Gilles Gouge', tarefas: '— (RDV + nacelle)', estado: 'PENDENTE', pendente_motivo: 'GC_ENVIAR_CRVT', lat: 47.9531, lng: 1.8902, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'Valter RIBEIRO' },
   { id: 9, id_ordem: 'ALLEVARD_DE_SAVOIE_12', denominacao: 'Allevard — de Savoie 12', pm: 'PM0535', commune: 'ALLEVARD', tipo_trabalho: 'DEF INFRA', cdt: 'João Gorricha', tarefas: 'BE-001 + 12 fusões', estado: 'PENDENTE', pendente_motivo: 'AGENDAR_RDV', lat: 45.3936, lng: 6.0747, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'Luis BESSA' },
   { id: 10, id_ordem: 'LA_MOTTE_D_AVEILLANS', denominacao: 'La Motte d\'Aveillans — PBO SAT', pm: 'PM0342', commune: 'LA MOTTE D\'AVEILLANS', tipo_trabalho: 'PBO SAT', cdt: 'Amghar Makhlouf', tarefas: 'PBO010 alignement', estado: 'RETORNO_INCOMPLETO', pendente_motivo: null, lat: 44.9986, lng: 5.7497, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'Luis BESSA' },
-  { id: 11, id_ordem: 'HUEZ_882_ROUTE', denominacao: 'Huez — 882 Route d\'Huez', pm: 'PM0079', commune: 'HUEZ', tipo_trabalho: 'ALIGNEMENT', cdt: 'Marcos Brazio', tarefas: 'Raccordement unitaire', estado: 'RETORNO_INCOMPLETO', pendente_motivo: null, lat: 45.0921, lng: 6.0689, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'Luis BESSA' },
+  { id: 11, id_ordem: 'HUEZ_882_ROUTE', denominacao: 'Huez — 882 Route d\'Huez', pm: 'PM0079', commune: 'HUEZ', tipo_trabalho: 'ALIGNEMENT', cdt: 'Marcos Brazio', tarefas: 'Raccordement unitaire', estado: 'ENTREGUE', pendente_motivo: null, valor: 640, attachement_feito: true, attachement_enviado: false, lat: 45.0921, lng: 6.0689, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'Luis BESSA' },
   { id: 12, id_ordem: 'LORRIS_NEIGE', denominacao: 'Lorris — Tirage', pm: 'PM2915', commune: 'LORRIS', tipo_trabalho: 'DEPLOIMENT - PONTAS', cdt: 'Emilie Chassinat', tarefas: 'TIRAGE SOUT 1700m', estado: 'PENDENTE', pendente_motivo: 'NEVE', lat: 47.8869, lng: 2.5103, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'Valter RIBEIRO' },
-  { id: 13, id_ordem: 'INGRE_PAPILLONS', denominacao: 'Ingré — des Papillons', pm: 'PM009', commune: 'INGRÉ', tipo_trabalho: 'ZMD', cdt: 'Gilles Gouge', tarefas: '52m 12FO — retorno enviado', estado: 'ENTREGUE', pendente_motivo: null, lat: 47.9319, lng: 1.8264, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'Valter RIBEIRO' },
+  { id: 13, id_ordem: 'INGRE_PAPILLONS', denominacao: 'Ingré — des Papillons', pm: 'PM009', commune: 'INGRÉ', tipo_trabalho: 'ZMD', cdt: 'Gilles Gouge', tarefas: '52m 12FO — retorno enviado', estado: 'ENTREGUE', pendente_motivo: null, valor: 850, attachement_feito: true, attachement_enviado: true, lat: 47.9319, lng: 1.8264, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'Valter RIBEIRO' },
   { id: 14, id_ordem: 'PAU_CTO_CENTRE', denominacao: 'Pau — CTO Centre', pm: 'PM064', commune: 'PAU', tipo_trabalho: 'POIV', cdt: 'Sylvain COTEN', tarefas: '300m 24FO', estado: 'RDV_AGENDADO', pendente_motivo: null, lat: 43.2951, lng: -0.3708, country: 'FR', zona: 'Pyrénées', team_id: 8, team_name: 'Paulo PINHEIRO' },
 ];
 
@@ -165,6 +165,14 @@ export const demoApi = {
       demoReturns[w.id] = { return_estado: ns || w.estado, return_obs: obs, return_user: 'Equipa (demo)', return_at: new Date().toISOString(), gps_lat: w.lat, gps_lng: w.lng, photos: [] };
     }
     return delay({ return: { id: nextId++ } });
+  },
+
+  // Faturação: entregues (estado ENTREGUE) com valor + attachement.
+  getBilling: (params = {}) => {
+    let list = works.filter((w) => w.estado === 'ENTREGUE');
+    if (params.department_id) list = list.filter((w) => String(w.department_id) === String(params.department_id));
+    if (params.country) list = list.filter((w) => w.country === params.country);
+    return delay({ works: clone(list), totals: { departments: [], grand: { count: list.length, valor: 0 } } });
   },
 
   // Fila de entregas (âmbito por papel).

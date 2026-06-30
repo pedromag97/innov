@@ -11,7 +11,8 @@ router.use(requireAuth);
 
 // Campos editáveis.
 const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada', 'estado', 'pendente_motivo',
-  'country', 'zona', 'department_id', 'team_id', 'pm', 'commune', 'tipo_trabalho', 'cdt', 'tarefas', 'ticket_ref'];
+  'country', 'zona', 'department_id', 'team_id', 'pm', 'commune', 'tipo_trabalho', 'cdt', 'tarefas', 'ticket_ref',
+  'valor', 'attachement_feito', 'attachement_enviado'];
 
 // Carrega os campos de âmbito de um trabalho (p/ verificações de acesso).
 async function getWorkScopeRow(id) {

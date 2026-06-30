@@ -13,6 +13,7 @@ import teamsRoutes from './routes/teams.js';
 import departmentsRoutes from './routes/departments.js';
 import catalogsRoutes from './routes/catalogs.js';
 import deliveriesRoutes from './routes/deliveries.js';
+import billingRoutes from './routes/billing.js';
 import exportRoutes from './routes/export.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -34,6 +35,7 @@ app.use('/api/teams', teamsRoutes);
 app.use('/api/departments', departmentsRoutes);
 app.use('/api', catalogsRoutes);   // /api/work-types, /api/cdts
 app.use('/api/deliveries', deliveriesRoutes);
+app.use('/api/billing', billingRoutes);
 app.use('/api/export', exportRoutes);
 
 // 404 JSON para rotas /api inexistentes.

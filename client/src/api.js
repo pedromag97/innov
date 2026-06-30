@@ -83,6 +83,12 @@ const realApi = {
   createCdt: (body) => request('POST', '/cdts', { body }),
   updateCdt: (id, body) => request('PATCH', `/cdts/${id}`, { body }),
 
+  // faturação (entregues + valor + attachement)
+  getBilling: (params = {}) => {
+    const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null && v !== ''));
+    return request('GET', `/billing${qs.toString() ? '?' + qs : ''}`);
+  },
+
   // deliveries (fila de entrega ao operador)
   listDeliveries: () => request('GET', '/deliveries'),
   deliverWork: (id) => request('POST', `/deliveries/${id}/deliver`),

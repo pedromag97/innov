@@ -6,6 +6,7 @@ import { api } from '../api.js';
 
 export default function Layout() {
   const { user, logout, canManage, isAdmin } = useAuth();
+  const isManager = user && (user.role === 'ADMIN' || user.role === 'GERENTE');
   const navigate = useNavigate();
   const location = useLocation();
   const [pending, setPending] = useState(0);
@@ -34,6 +35,7 @@ export default function Layout() {
                 {pending > 0 && <span className="rounded-full bg-amber-400 text-amber-900 text-xs px-1.5 leading-5 min-w-5 text-center">{pending}</span>}
               </Link>
             )}
+            {isManager && <Link to="/faturacao" className="hover:underline">Faturação</Link>}
             <Link to="/terreno" className="hover:underline">Terreno</Link>
             {isAdmin && <Link to="/admin" className="hover:underline">Admin</Link>}
             <span className="hidden sm:inline opacity-80">

@@ -112,6 +112,10 @@ CREATE TABLE IF NOT EXISTS works (
   -- Fluxo de entrega ao cliente/operador
   pending_delivery BOOLEAN NOT NULL DEFAULT false, -- tem retorno por entregar
   delivered_at  TIMESTAMPTZ,                  -- quando foi entregue ao operador
+  -- Faturação (após entrega)
+  valor               NUMERIC(12,2),               -- valor produzido pelo trabalho (€)
+  attachement_feito   BOOLEAN NOT NULL DEFAULT false, -- attachement preparado
+  attachement_enviado BOOLEAN NOT NULL DEFAULT false, -- attachement enviado
   -- Importação idempotente
   source        TEXT,                         -- folha/origem de import
   import_key    TEXT UNIQUE,                  -- chave natural estável p/ upsert (NULL = criado na app)
