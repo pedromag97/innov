@@ -68,17 +68,19 @@ export default function Dashboard() {
   const set = (k) => (e) => setFilters((f) => ({ ...f, [k]: e.target.value }));
 
   return (
-    <div className="mx-auto max-w-7xl p-4 grid gap-4 lg:grid-cols-[1fr_380px]">
-      {/* Mapa */}
-      <section className="order-1 lg:order-none">
-        <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm h-[58vh] lg:h-[78vh] bg-white">
-          <MapView points={points} onPointClick={(p) => navigate(`/trabalhos/${p.id}/editar`)} />
+    <div className="mx-auto max-w-7xl p-4 grid gap-4 lg:grid-cols-[1fr_360px]">
+      {/* Mapa — coluna lateral mais pequena e fixa (secundário) */}
+      <section className="order-2">
+        <div className="lg:sticky lg:top-4">
+          <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm h-[38vh] lg:h-[56vh] bg-white">
+            <MapView points={points} onPointClick={(p) => navigate(`/trabalhos/${p.id}/editar`)} />
+          </div>
+          <Legend />
         </div>
-        <Legend />
       </section>
 
-      {/* Painel lateral: filtros + ações + lista */}
-      <aside className="space-y-4">
+      {/* Listagem — coluna principal (mais espaço) */}
+      <aside className="order-1 space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-slate-800">Trabalhos ({works.length})</h1>
           <button
@@ -139,7 +141,7 @@ export default function Dashboard() {
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {/* Lista agrupada por departamento (subtotais + Entregues destacados) */}
-        <div className="rounded-xl border border-slate-200 bg-white max-h-[46vh] overflow-auto">
+        <div className="rounded-xl border border-slate-200 bg-white max-h-[72vh] overflow-auto">
           {loading ? (
             <p className="p-4 text-sm text-slate-500">A carregar…</p>
           ) : works.length === 0 ? (
