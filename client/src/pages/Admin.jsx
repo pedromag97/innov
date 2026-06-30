@@ -1,22 +1,30 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
+import { useAuth } from '../auth/AuthContext.jsx';
 import { ROLES, ROLE_LABELS } from '../roles.js';
-import { useCountries } from '../hooks/useCountries.js';
+import CountryFlag from '../components/CountryFlag.jsx';
 
-// Ecrã de administração (ADMIN): gerir utilizadores, equipas e departamentos,
-// com atribuição de âmbito (países p/ BACKOFFICE, departamentos p/ CDT, equipa p/ TERRENO).
+// Ecrã de administração. ADMIN: utilizadores, equipas, departamentos, tipos/CDTs e
+// países. GERENTE: só países (definições da app). Âmbito: países p/ BACKOFFICE,
+// departamentos p/ CDT, equipa p/ TERRENO.
 export default function Admin() {
+  const { isAdmin } = useAuth();
   const [teams, setTeams] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [users, setUsers] = useState([]);
+  const [countries, setCountries] = useState([]);
   const [error, setError] = useState('');
-  const [tab, setTab] = useState('users');
-  const countries = useCountries();
+  const [tab, setTab] = useState(isAdmin ? 'users' : 'countries');
 
   async function reload() {
     try {
-      const [t, d, u] = await Promise.all([api.listTeams(), api.listDepartments(), api.listUsers()]);
-      setTeams(t.teams); setDepartments(d.departments); setUsers(u.users); setError('');
+      const c = await api.listCountries(1);
+      setCountries(c.countries);
+      if (isAdmin) {
+        const [t, d, u] = await Promise.all([api.listTeams(), api.listDepartments(), api.listUsers()]);
+        setTeams(t.teams); setDepartments(d.departments); setUsers(u.users);
+      }
+      setError('');
     } catch (e) { setError(e.message); }
   }
   useEffect(() => { reload(); }, []);
@@ -24,25 +32,63 @@ export default function Admin() {
   const Tab = ({ id, label }) => (
     <button onClick={() => setTab(id)} className={`px-3 py-1.5 ${tab === id ? 'bg-brand text-white' : 'bg-white'}`}>{label}</button>
   );
+  const activeCountries = countries.filter((c) => c.active);
 
   return (
     <div className="mx-auto max-w-4xl p-4 space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <h1 className="text-lg font-bold text-slate-800">Administração</h1>
         <div className="ml-auto flex rounded-lg border border-slate-300 overflow-hidden text-sm">
-          <Tab id="users" label="Utilizadores" />
-          <Tab id="teams" label="Equipas" />
-          <Tab id="departments" label="Departamentos" />
-          <Tab id="catalogs" label="Tipos/CDTs" />
+          {isAdmin && <Tab id="users" label="Utilizadores" />}
+          {isAdmin && <Tab id="teams" label="Equipas" />}
+          {isAdmin && <Tab id="departments" label="Departamentos" />}
+          {isAdmin && <Tab id="catalogs" label="Tipos/CDTs" />}
+          <Tab id="countries" label="Países" />
         </div>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      {tab === 'users' && <UsersPanel users={users} teams={teams} departments={departments} countries={countries} onChange={reload} setError={setError} />}
-      {tab === 'teams' && <TeamsPanel teams={teams} departments={departments} onChange={reload} setError={setError} />}
-      {tab === 'departments' && <DepartmentsPanel departments={departments} countries={countries} onChange={reload} setError={setError} />}
-      {tab === 'catalogs' && <CatalogsPanel departments={departments} setError={setError} />}
+      {tab === 'users' && isAdmin && <UsersPanel users={users} teams={teams} departments={departments} countries={activeCountries} onChange={reload} setError={setError} />}
+      {tab === 'teams' && isAdmin && <TeamsPanel teams={teams} departments={departments} onChange={reload} setError={setError} />}
+      {tab === 'departments' && isAdmin && <DepartmentsPanel departments={departments} countries={activeCountries} onChange={reload} setError={setError} />}
+      {tab === 'catalogs' && isAdmin && <CatalogsPanel departments={departments} setError={setError} />}
+      {tab === 'countries' && <CountriesPanel countries={countries} onChange={reload} setError={setError} />}
       <Styles />
+    </div>
+  );
+}
+
+// Gestão de países (definições da app) — gerente/admin.
+function CountriesPanel({ countries, onChange, setError }) {
+  const [form, setForm] = useState({ code: '', name: '' });
+  const [saving, setSaving] = useState(false);
+  async function save(e) {
+    e.preventDefault(); setSaving(true);
+    try { await api.createCountry({ code: form.code, name: form.name }); setForm({ code: '', name: '' }); onChange(); }
+    catch (err) { setError(err.message); } finally { setSaving(false); }
+  }
+  async function patch(code, b) { try { await api.updateCountry(code, b); onChange(); } catch (e) { setError(e.message); } }
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-slate-500">Países usados nos trabalhos, filtros e âmbitos. Acrescenta novos conforme a operação cresce.</p>
+      <form onSubmit={save} className="rounded-xl border border-slate-200 bg-white p-4 flex flex-wrap gap-2 items-end">
+        <label className="block"><span className="lbl">Código *</span>
+          <input required value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))} maxLength={3} className="adm-inp w-24 uppercase" placeholder="ES" /></label>
+        <label className="block flex-1 min-w-[140px]"><span className="lbl">Nome *</span>
+          <input required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="adm-inp" placeholder="Espanha" /></label>
+        <button disabled={saving} className="rounded-lg bg-brand text-white px-4 py-2 text-sm font-medium hover:bg-brand-dark disabled:opacity-50">{saving ? 'A guardar…' : '+ Adicionar país'}</button>
+      </form>
+      <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
+        {countries.map((c) => (
+          <div key={c.code} className={`flex items-center gap-3 p-3 ${c.active ? '' : 'opacity-50'}`}>
+            <CountryFlag country={c.code} />
+            <span className="font-medium text-slate-700">{c.name}</span>
+            <span className="text-xs rounded bg-slate-100 px-2 py-0.5 text-slate-500">{c.code}</span>
+            <button onClick={() => patch(c.code, { active: !c.active })} className={`ml-auto rounded px-2 py-1 text-xs ${c.active ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>{c.active ? 'Ativo' : 'Inativo'}</button>
+          </div>
+        ))}
+        {countries.length === 0 && <p className="p-3 text-sm text-slate-400">Sem países.</p>}
+      </div>
     </div>
   );
 }

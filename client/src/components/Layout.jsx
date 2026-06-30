@@ -10,14 +10,20 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [pending, setPending] = useState(0);
+  const [nok, setNok] = useState(0);
 
-  // Contador de entregas pendentes (atualiza ao mudar de página ou ao entregar).
+  // Contadores (entregas pendentes + NOK). Atualizam ao mudar de página ou ao agir.
   useEffect(() => {
     if (!user || !canManage) return;
-    const refresh = () => api.listDeliveries().then((d) => setPending(d.deliveries.length)).catch(() => {});
-    refresh();
-    window.addEventListener('fc-deliveries-changed', refresh);
-    return () => window.removeEventListener('fc-deliveries-changed', refresh);
+    const refreshDeliveries = () => api.listDeliveries().then((d) => setPending(d.deliveries.length)).catch(() => {});
+    const refreshNok = () => api.listWorks({ estado: 'NOK' }).then((d) => setNok(d.works.length)).catch(() => {});
+    refreshDeliveries(); refreshNok();
+    window.addEventListener('fc-deliveries-changed', refreshDeliveries);
+    window.addEventListener('fc-nok-changed', refreshNok);
+    return () => {
+      window.removeEventListener('fc-deliveries-changed', refreshDeliveries);
+      window.removeEventListener('fc-nok-changed', refreshNok);
+    };
   }, [user, canManage, location.pathname]);
 
   if (!user) return <Outlet />;
@@ -35,10 +41,15 @@ export default function Layout() {
                 {pending > 0 && <span className="rounded-full bg-amber-400 text-amber-900 text-xs px-1.5 leading-5 min-w-5 text-center">{pending}</span>}
               </Link>
             )}
+            {canManage && (
+              <Link to="/nok" className="hover:underline inline-flex items-center gap-1">
+                NOK
+                {nok > 0 && <span className="rounded-full bg-red-400 text-red-900 text-xs px-1.5 leading-5 min-w-5 text-center">{nok}</span>}
+              </Link>
+            )}
             {isManager && <Link to="/faturacao" className="hover:underline">Faturação</Link>}
             <Link to="/terreno" className="hover:underline">Terreno</Link>
-            {isManager && <Link to="/definicoes" className="hover:underline">Definições</Link>}
-            {isAdmin && <Link to="/admin" className="hover:underline">Admin</Link>}
+            {isManager && <Link to="/admin" className="hover:underline">Admin</Link>}
             <span className="hidden sm:inline opacity-80">
               {user.email} · {ROLE_LABELS[user.role]}
             </span>

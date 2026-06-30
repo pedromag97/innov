@@ -145,7 +145,7 @@ function filterWorks(params = {}) {
   return works.filter((w) => {
     if (!inScope(w, user)) return false;
     if (user.role === 'TERRENO' && w.visivel_terreno === false) return false;
-    if (params.active && (w.estado === 'FEITO' || w.estado === 'ENTREGUE')) return false;
+    if (params.active && ['FEITO', 'ENTREGUE', 'NOK'].includes(w.estado)) return false;
     if (params.estado && w.estado !== params.estado) return false;
     if (params.team_id && String(w.team_id) !== String(params.team_id)) return false;
     if (params.country && w.country !== params.country) return false;

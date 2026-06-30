@@ -47,8 +47,8 @@ router.get('/', async (req, res) => {
   if (department_id) add('w.department_id = ?', department_id);
   if (cdt) add('w.cdt = ?', cdt);
   if (tipo_trabalho) add('w.tipo_trabalho = ?', tipo_trabalho);
-  // Dashboard: só trabalhos ativos (FEITO vai p/ Entregas, ENTREGUE p/ Faturação).
-  if (req.query.active) where.push("w.estado NOT IN ('FEITO','ENTREGUE')");
+  // Dashboard: só trabalhos ativos. FEITO->Entregas, ENTREGUE->Faturação, NOK->página NOK.
+  if (req.query.active) where.push("w.estado NOT IN ('FEITO','ENTREGUE','NOK')");
   // Equipa de terreno: só vê trabalhos marcados como visíveis.
   if (req.user.role === 'TERRENO') where.push('w.visivel_terreno = true');
   if (q) {

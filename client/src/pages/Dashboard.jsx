@@ -108,7 +108,7 @@ export default function Dashboard() {
             className="col-span-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm" />
           <select value={filters.estado} onChange={set('estado')} className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
             <option value="">Todos os estados</option>
-            {STATES.map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
+            {STATES.filter((s) => !['FEITO', 'ENTREGUE', 'NOK'].includes(s.code)).map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
           </select>
           <select value={filters.team_id} onChange={set('team_id')} className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
             <option value="">Todas as equipas</option>
