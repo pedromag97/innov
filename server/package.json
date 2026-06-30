@@ -9,7 +9,8 @@
     "start": "node src/index.js",
     "migrate": "node src/migrate.js",
     "seed": "node src/seed.js",
-    "seed:pms": "node src/seed-pms.js"
+    "seed:pms": "node src/seed-pms.js",
+    "geocode": "node src/geocode-works.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.12",
