@@ -84,7 +84,7 @@ function UsersPanel({ users, teams, departments, onChange, setError }) {
     if (u.role === 'BACKOFFICE') return (u.countries || []).join(', ') || '— sem país —';
     if (u.role === 'CDT') return (u.department_ids || []).map(deptName).join(', ') || '— sem dept —';
     if (u.role === 'TERRENO') return u.team_name || '— sem equipa —';
-    return 'PT + FR (tudo)';
+    return 'Todos os países';
   };
 
   return (

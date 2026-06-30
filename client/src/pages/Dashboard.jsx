@@ -106,7 +106,7 @@ export default function Dashboard() {
             {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
           <select value={filters.country} onChange={set('country')} className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
-            <option value="">PT + FR</option>
+            <option value="">Todos os países</option>
             <option value="PT">Portugal</option>
             <option value="FR">França</option>
           </select>

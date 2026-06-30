@@ -63,6 +63,15 @@ export default function WorkForm() {
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const onDragEnd = useCallback(({ lat, lng }) => setForm((f) => ({ ...f, lat, lng })), []);
 
+  // País: ao mudar, larga o departamento se já não pertencer a esse país.
+  const onCountry = (e) => {
+    const country = e.target.value;
+    setForm((f) => {
+      const dep = departments.find((d) => String(d.id) === String(f.department_id));
+      return { ...f, country, department_id: dep && dep.country === country ? f.department_id : '' };
+    });
+  };
+
   // PM em texto livre: ao bater certo com o catálogo, preenche commune + SRO-BPI.
   const onPm = (e) => {
     const pm = e.target.value;
@@ -119,10 +128,16 @@ export default function WorkForm() {
 
         <Field label="ID Ordem / Dossier *"><input required value={form.id_ordem} onChange={set('id_ordem')} className="inp" /></Field>
         <Field label="Denominação *"><input required value={form.denominacao} onChange={set('denominacao')} className="inp" /></Field>
+        <Field label="País *">
+          <select value={form.country} onChange={onCountry} className="inp">
+            <option value="PT">Portugal</option>
+            <option value="FR">França</option>
+          </select>
+        </Field>
         <Field label="Departamento *">
           <select value={form.department_id || ''} onChange={set('department_id')} className="inp">
             <option value="">— escolher departamento —</option>
-            {departments.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.country})</option>)}
+            {departments.filter((d) => d.country === form.country).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
         </Field>
 
@@ -177,12 +192,6 @@ export default function WorkForm() {
             <select value={form.team_id} onChange={set('team_id')} className="inp">
               <option value="">— sem equipa —</option>
               {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
-          </Field>
-          <Field label="País">
-            <select value={form.country} onChange={set('country')} className="inp">
-              <option value="PT">Portugal</option>
-              <option value="FR">França</option>
             </select>
           </Field>
           <Field label={form.department_id ? 'Zona (do departamento)' : 'Zona'}>
