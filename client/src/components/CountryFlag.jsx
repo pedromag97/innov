@@ -21,5 +21,11 @@ export default function CountryFlag({ country, className = '' }) {
       </span>
     );
   }
-  return <span className={base} title={country} />;
+  // País sem bandeira desenhada: mostra o código num pequeno crachá.
+  return (
+    <span title={country}
+      className={`inline-flex items-center justify-center h-3.5 min-w-5 px-0.5 rounded-[2px] bg-slate-400 text-white text-[8px] font-bold leading-none shrink-0 ${className}`}>
+      {country}
+    </span>
+  );
 }

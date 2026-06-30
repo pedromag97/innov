@@ -6,6 +6,7 @@ import MapView from '../components/MapView.jsx';
 import StateBadge from '../components/StateBadge.jsx';
 import CountryFlag from '../components/CountryFlag.jsx';
 import Countdown from '../components/Countdown.jsx';
+import { useCountries } from '../hooks/useCountries.js';
 
 const EMPTY = {
   id_ordem: '', denominacao: '', descricao: '',
@@ -33,6 +34,7 @@ export default function WorkForm() {
   const [workTypes, setWorkTypes] = useState([]);
   const [cdts, setCdts] = useState([]);
   const [pms, setPms] = useState([]);   // catálogo PM->commune->SRO-BPI do departamento
+  const countries = useCountries();
   const [history, setHistory] = useState([]);
   const [returns, setReturns] = useState([]);
   const [error, setError] = useState('');
@@ -150,8 +152,7 @@ export default function WorkForm() {
         <Field label="Denominação *"><input required value={form.denominacao} onChange={set('denominacao')} className="inp" /></Field>
         <Field label="País *">
           <select value={form.country} onChange={onCountry} className="inp">
-            <option value="PT">Portugal</option>
-            <option value="FR">França</option>
+            {countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
           </select>
         </Field>
         <Field label="Departamento *">

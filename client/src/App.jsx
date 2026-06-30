@@ -8,6 +8,7 @@ import WorkForm from './pages/WorkForm.jsx';
 import FieldList from './pages/FieldList.jsx';
 import FieldReturn from './pages/FieldReturn.jsx';
 import Admin from './pages/Admin.jsx';
+import Definicoes from './pages/Definicoes.jsx';
 import Deliveries from './pages/Deliveries.jsx';
 import Billing from './pages/Billing.jsx';
 
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/trabalhos/:id/editar" element={<Protected allow={MANAGE_ROLES}><WorkForm /></Protected>} />
         <Route path="/entregas" element={<Protected allow={MANAGE_ROLES}><Deliveries /></Protected>} />
         <Route path="/faturacao" element={<Protected allow={['ADMIN', 'GERENTE']}><Billing /></Protected>} />
+        <Route path="/definicoes" element={<Protected allow={['ADMIN', 'GERENTE']}><Definicoes /></Protected>} />
         <Route path="/admin" element={<Protected allow={['ADMIN']}><Admin /></Protected>} />
 
         {/* Equipa de terreno (qualquer papel autenticado) */}

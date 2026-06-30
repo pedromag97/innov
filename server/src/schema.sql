@@ -20,6 +20,16 @@ CREATE TABLE IF NOT EXISTS teams (
 );
 
 -- ─────────────────────────────────────────────────────────────────────────
+-- countries — países geridos (gerente/admin). Código vive em works/users/etc.
+-- ─────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS countries (
+  code       TEXT PRIMARY KEY,            -- 'PT', 'FR', 'ES'...
+  name       TEXT NOT NULL,
+  active     BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ─────────────────────────────────────────────────────────────────────────
 -- departments — departamentos/projetos por país (ex.: FR: ERT 45/38/64)
 -- ─────────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS departments (

@@ -25,6 +25,10 @@ const teams = [
   { id: 11, name: 'Telmo RIBEIRO', country: 'FR', department_id: 3, active: true },
 ];
 
+let countriesData = [
+  { code: 'PT', name: 'Portugal', active: true },
+  { code: 'FR', name: 'França', active: true },
+];
 const departments = [
   { id: 1, code: 'ERT45', name: 'ERT 45', country: 'FR', zona: 'Orleans', active: true },
   { id: 2, code: 'ERT38', name: 'ERT 38', country: 'FR', zona: 'Grenoble', active: true },
@@ -206,6 +210,10 @@ export const demoApi = {
   },
   deliverWork: (id) => { const w = works.find((x) => String(x.id) === String(id)); if (w) { w.estado = 'ENTREGUE'; w.pending_delivery = false; } delete demoReturns[id]; return delay({ work: clone(w) }); },
   dismissDelivery: (id) => { const w = works.find((x) => String(x.id) === String(id)); if (w) { w.estado = 'RETORNO_INCOMPLETO'; w.pending_delivery = false; } delete demoReturns[id]; return delay({ ok: true }); },
+
+  listCountries: (all) => delay({ countries: clone(countriesData.filter((c) => all || c.active)) }),
+  createCountry: (b) => { const it = { code: String(b.code).toUpperCase(), name: b.name, active: true }; countriesData.push(it); return delay({ country: it }); },
+  updateCountry: (code, b) => { const it = countriesData.find((c) => c.code === String(code).toUpperCase()); Object.assign(it, b); return delay({ country: clone(it) }); },
 
   listDepartments: () => delay({ departments: clone(departments) }),
   createDepartment: (b) => { const d = { ...b, id: nextId++, active: true }; departments.push(d); return delay({ department: d }); },

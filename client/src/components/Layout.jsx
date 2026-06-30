@@ -37,6 +37,7 @@ export default function Layout() {
             )}
             {isManager && <Link to="/faturacao" className="hover:underline">Faturação</Link>}
             <Link to="/terreno" className="hover:underline">Terreno</Link>
+            {isManager && <Link to="/definicoes" className="hover:underline">Definições</Link>}
             {isAdmin && <Link to="/admin" className="hover:underline">Admin</Link>}
             <span className="hidden sm:inline opacity-80">
               {user.email} · {ROLE_LABELS[user.role]}

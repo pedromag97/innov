@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import { ROLES, ROLE_LABELS } from '../roles.js';
+import { useCountries } from '../hooks/useCountries.js';
 
 // Ecrã de administração (ADMIN): gerir utilizadores, equipas e departamentos,
 // com atribuição de âmbito (países p/ BACKOFFICE, departamentos p/ CDT, equipa p/ TERRENO).
@@ -10,6 +11,7 @@ export default function Admin() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
   const [tab, setTab] = useState('users');
+  const countries = useCountries();
 
   async function reload() {
     try {
@@ -36,19 +38,18 @@ export default function Admin() {
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      {tab === 'users' && <UsersPanel users={users} teams={teams} departments={departments} onChange={reload} setError={setError} />}
+      {tab === 'users' && <UsersPanel users={users} teams={teams} departments={departments} countries={countries} onChange={reload} setError={setError} />}
       {tab === 'teams' && <TeamsPanel teams={teams} departments={departments} onChange={reload} setError={setError} />}
-      {tab === 'departments' && <DepartmentsPanel departments={departments} onChange={reload} setError={setError} />}
+      {tab === 'departments' && <DepartmentsPanel departments={departments} countries={countries} onChange={reload} setError={setError} />}
       {tab === 'catalogs' && <CatalogsPanel departments={departments} setError={setError} />}
       <Styles />
     </div>
   );
 }
 
-const COUNTRIES = [{ code: 'PT', label: 'Portugal' }, { code: 'FR', label: 'França' }];
 const EMPTY_USER = { id: null, email: '', name: '', role: 'TERRENO', team_id: '', countries: [], department_ids: [], password: '' };
 
-function UsersPanel({ users, teams, departments, onChange, setError }) {
+function UsersPanel({ users, teams, departments, countries, onChange, setError }) {
   const [form, setForm] = useState(EMPTY_USER);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const toggle = (k, val) => setForm((f) => ({
@@ -124,10 +125,10 @@ function UsersPanel({ users, teams, departments, onChange, setError }) {
             <div className="sm:col-span-2">
               <span className="lbl">Países (âmbito)</span>
               <div className="flex gap-3 mt-1">
-                {COUNTRIES.map((c) => (
+                {countries.map((c) => (
                   <label key={c.code} className="flex items-center gap-1 text-sm">
                     <input type="checkbox" checked={form.countries.includes(c.code)} onChange={() => toggle('countries', c.code)} />
-                    {c.label}
+                    {c.name}
                   </label>
                 ))}
               </div>
@@ -234,7 +235,7 @@ function TeamsPanel({ teams, departments, onChange, setError }) {
   );
 }
 
-function DepartmentsPanel({ departments, onChange, setError }) {
+function DepartmentsPanel({ departments, countries, onChange, setError }) {
   const EMPTY = { id: null, code: '', name: '', country: 'FR', zona: '' };
   const [form, setForm] = useState(EMPTY);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -260,7 +261,7 @@ function DepartmentsPanel({ departments, onChange, setError }) {
         <label className="block"><span className="lbl">Código *</span><input required value={form.code} onChange={set('code')} className="adm-inp" placeholder="ERT45" /></label>
         <label className="block flex-1 min-w-[120px]"><span className="lbl">Nome *</span><input required value={form.name} onChange={set('name')} className="adm-inp" placeholder="ERT 45" /></label>
         <label className="block"><span className="lbl">Zona/Cidade</span><input value={form.zona} onChange={set('zona')} className="adm-inp" placeholder="Orleans" /></label>
-        <label className="block"><span className="lbl">País</span><select value={form.country} onChange={set('country')} className="adm-inp"><option value="FR">França</option><option value="PT">Portugal</option></select></label>
+        <label className="block"><span className="lbl">País</span><select value={form.country} onChange={set('country')} className="adm-inp">{countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}</select></label>
         <button className="rounded-lg bg-brand text-white px-4 py-2 text-sm font-medium hover:bg-brand-dark">{form.id ? 'Guardar' : 'Criar departamento'}</button>
         {form.id && <button type="button" onClick={reset} className="text-xs text-slate-500 underline">cancelar</button>}
       </form>

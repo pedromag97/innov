@@ -71,6 +71,11 @@ const realApi = {
     return request('GET', `/geocode?${qs}`);
   },
 
+  // países (geridos por gerente/admin)
+  listCountries: (all) => request('GET', `/countries${all ? '?all=1' : ''}`),
+  createCountry: (body) => request('POST', '/countries', { body }),
+  updateCountry: (code, body) => request('PATCH', `/countries/${code}`, { body }),
+
   // departments
   listDepartments: () => request('GET', '/departments'),
   createDepartment: (body) => request('POST', '/departments', { body }),

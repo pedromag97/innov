@@ -6,6 +6,7 @@ import MapView from '../components/MapView.jsx';
 import StateBadge from '../components/StateBadge.jsx';
 import CountryFlag from '../components/CountryFlag.jsx';
 import Countdown from '../components/Countdown.jsx';
+import { useCountries } from '../hooks/useCountries.js';
 import { fmtDate } from '../format.js';
 
 export default function Dashboard() {
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [allWorks, setAllWorks] = useState([]); // sem filtros, p/ construir as listas de opções
   const [teams, setTeams] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const countries = useCountries();
   const [filters, setFilters] = useState({ estado: '', team_id: '', country: '', department_id: '', zona: '', cdt: '', tipo_trabalho: '', q: '' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -114,8 +116,7 @@ export default function Dashboard() {
           </select>
           <select value={filters.country} onChange={set('country')} className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
             <option value="">Todos os países</option>
-            <option value="PT">Portugal</option>
-            <option value="FR">França</option>
+            {countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
           </select>
           <select value={filters.department_id} onChange={set('department_id')} className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
             <option value="">Todos os departamentos</option>

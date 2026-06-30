@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api.js';
+import { useCountries } from '../hooks/useCountries.js';
 
 const eur = (n) => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(n) || 0);
 
@@ -8,6 +9,7 @@ const eur = (n) => new Intl.NumberFormat('pt-PT', { style: 'currency', currency:
 export default function Billing() {
   const [works, setWorks] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const countries = useCountries();
   const [filters, setFilters] = useState({ department_id: '', country: '' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -55,8 +57,7 @@ export default function Billing() {
           </select>
           <select value={filters.country} onChange={set('country')} className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
             <option value="">Todos os países</option>
-            <option value="PT">Portugal</option>
-            <option value="FR">França</option>
+            {countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
           </select>
         </div>
       </div>
