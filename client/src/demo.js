@@ -79,7 +79,7 @@ let works = [
   { id: 11, id_ordem: 'HUEZ_882_ROUTE', denominacao: 'Huez — 882 Route d\'Huez', pm: 'PM0079', commune: 'HUEZ', tipo_trabalho: 'ALIGNEMENT', cdt: 'Marcos Brazio', tarefas: 'Raccordement unitaire', estado: 'ENTREGUE', pendente_motivo: null, valor: 640, attachement_feito: true, attachement_enviado: false, lat: 45.0921, lng: 6.0689, country: 'FR', zona: 'Isère', team_id: 4, team_name: 'Luis BESSA' },
   { id: 12, id_ordem: 'LORRIS_NEIGE', denominacao: 'Lorris — Tirage', pm: 'PM2915', commune: 'LORRIS', tipo_trabalho: 'DEPLOIMENT - PONTAS', cdt: 'Emilie Chassinat', tarefas: 'TIRAGE SOUT 1700m', estado: 'PENDENTE', pendente_motivo: 'NEVE', lat: 47.8869, lng: 2.5103, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'Valter RIBEIRO' },
   { id: 13, id_ordem: 'INGRE_PAPILLONS', denominacao: 'Ingré — des Papillons', pm: 'PM009', commune: 'INGRÉ', tipo_trabalho: 'ZMD', cdt: 'Gilles Gouge', tarefas: '52m 12FO — retorno enviado', estado: 'ENTREGUE', pendente_motivo: null, valor: 850, attachement_feito: true, attachement_enviado: true, lat: 47.9319, lng: 1.8264, country: 'FR', zona: 'Loiret', team_id: 3, team_name: 'Valter RIBEIRO' },
-  { id: 14, id_ordem: 'PAU_CTO_CENTRE', denominacao: 'Pau — CTO Centre', pm: 'PM064', commune: 'PAU', tipo_trabalho: 'POIV', cdt: 'Sylvain COTEN', tarefas: '300m 24FO', estado: 'RDV_AGENDADO', pendente_motivo: null, lat: 43.2951, lng: -0.3708, country: 'FR', zona: 'Pyrénées', team_id: 8, team_name: 'Paulo PINHEIRO' },
+  { id: 14, id_ordem: 'PAU_CTO_CENTRE', denominacao: 'Pau — CTO Centre', pm: 'PM064', commune: 'PAU', tipo_trabalho: 'POIV', cdt: 'Sylvain COTEN', tarefas: '300m 24FO', estado: 'RDV_AGENDADO', pendente_motivo: null, rdv_data: '2026-07-15', lat: 43.2951, lng: -0.3708, country: 'FR', zona: 'Pyrénées', team_id: 8, team_name: 'Paulo PINHEIRO' },
 ];
 
 // Anota cada trabalho com o departamento (via zona) — usado no âmbito do CDT.
@@ -157,10 +157,12 @@ export const demoApi = {
     const w = works.find((x) => String(x.id) === String(id));
     const ns = fd.get ? fd.get('new_estado') : null;
     const mot = fd.get ? fd.get('pendente_motivo') : '';
+    const rdvd = fd.get ? fd.get('rdv_data') : '';
     const obs = fd.get ? fd.get('observacoes') : '';
     if (w) {
       if (ns) w.estado = ns;
       w.pendente_motivo = ns === 'PENDENTE' ? (mot || null) : null;
+      w.rdv_data = ns === 'RDV_AGENDADO' ? (rdvd || null) : null;
       w.pending_delivery = true; // entra na fila "a entregar"
       demoReturns[w.id] = { return_estado: ns || w.estado, return_obs: obs, return_user: 'Equipa (demo)', return_at: new Date().toISOString(), gps_lat: w.lat, gps_lng: w.lng, photos: [] };
     }

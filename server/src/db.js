@@ -1,6 +1,9 @@
 import pg from 'pg';
 import config from './config.js';
 
+// DATE (OID 1082) -> string 'YYYY-MM-DD' (evita desvios de fuso ao serializar).
+pg.types.setTypeParser(1082, (v) => v);
+
 // Single shared pool for the whole API.
 export const pool = new pg.Pool({
   connectionString: config.databaseUrl,

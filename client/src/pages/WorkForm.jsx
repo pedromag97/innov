@@ -10,7 +10,7 @@ const EMPTY = {
   id_ordem: '', denominacao: '', descricao: '',
   pm: '', commune: '', tipo_trabalho: '', cdt: '', tarefas: '', ticket_ref: '', valor: '',
   lat: null, lng: null, morada: '',
-  estado: 'PENDENTE', pendente_motivo: '', country: 'PT', zona: '', department_id: '', team_id: '',
+  estado: 'PENDENTE', pendente_motivo: '', rdv_data: '', country: 'PT', zona: '', department_id: '', team_id: '',
 };
 
 // Garante que o valor atual (ex.: importado, fora do catálogo) aparece na lista.
@@ -52,6 +52,7 @@ export default function WorkForm() {
     if (!isEdit) return;
     api.getWork(id).then((d) => setForm({
       ...EMPTY, ...d.work, team_id: d.work.team_id || '', department_id: d.work.department_id || '',
+      rdv_data: d.work.rdv_data || '',
     })).catch((e) => setError(e.message));
     api.getWorkHistory(id).then((d) => setHistory(d.history)).catch(() => {});
     api.getWorkReturns(id).then((d) => setReturns(d.returns)).catch(() => {});
@@ -71,8 +72,14 @@ export default function WorkForm() {
       team_id: form.team_id || null,
       department_id: form.department_id || null,
       pendente_motivo: form.estado === 'PENDENTE' ? (form.pendente_motivo || null) : null,
+      rdv_data: form.estado === 'RDV_AGENDADO' ? (form.rdv_data || null) : null,
       valor: form.valor === '' || form.valor == null ? null : Number(form.valor),
     };
+    if (form.estado === 'RDV_AGENDADO' && !form.rdv_data) {
+      setError('Indique a data do RDV (obrigatória quando RDV Agendado).');
+      setSaving(false);
+      return;
+    }
     try {
       if (isEdit) await api.updateWork(id, payload);
       else await api.createWork(payload);
@@ -136,6 +143,10 @@ export default function WorkForm() {
                 <option value="">— sem motivo —</option>
                 {PENDENTE_MOTIVOS.map((m) => <option key={m.code} value={m.code}>{m.label}</option>)}
               </select>
+            </Field>
+          ) : form.estado === 'RDV_AGENDADO' ? (
+            <Field label="Data do RDV *">
+              <input type="date" required value={form.rdv_data || ''} onChange={set('rdv_data')} className="inp" />
             </Field>
           ) : <div />}
           <Field label="Equipa">

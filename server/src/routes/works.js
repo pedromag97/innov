@@ -10,7 +10,7 @@ const router = Router();
 router.use(requireAuth);
 
 // Campos editáveis.
-const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada', 'estado', 'pendente_motivo',
+const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada', 'estado', 'pendente_motivo', 'rdv_data',
   'country', 'zona', 'department_id', 'team_id', 'pm', 'commune', 'tipo_trabalho', 'cdt', 'tarefas', 'ticket_ref',
   'valor', 'attachement_feito', 'attachement_enviado'];
 
@@ -136,16 +136,21 @@ router.post('/', requireManageWorks, async (req, res) => {
   }
   // Motivo só faz sentido em PENDENTE.
   const motivo = (b.estado || 'PENDENTE') === 'PENDENTE' ? (b.pendente_motivo || null) : null;
+  // RDV: data obrigatória quando RDV_AGENDADO; ignorada nos outros estados.
+  const rdv = b.estado === 'RDV_AGENDADO' ? (b.rdv_data || null) : null;
+  if (b.estado === 'RDV_AGENDADO' && !rdv) {
+    return res.status(400).json({ error: 'Indique a data do RDV (obrigatória quando RDV Agendado).' });
+  }
   // Zona = zona do departamento (se houver departamento).
   if (b.department_id) b.zona = await deptZona(b.department_id);
   try {
     const work = await withTransaction(async (client) => {
       const { rows } = await client.query(
-        `INSERT INTO works (id_ordem, denominacao, descricao, lat, lng, morada, estado, pendente_motivo, country, zona, department_id, team_id, created_by)
-         VALUES ($1,$2,$3,$4,$5,$6,COALESCE($7,'PENDENTE'),$8,COALESCE($9,'PT'),$10,$11,$12,$13)
+        `INSERT INTO works (id_ordem, denominacao, descricao, lat, lng, morada, estado, pendente_motivo, rdv_data, country, zona, department_id, team_id, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6,COALESCE($7,'PENDENTE'),$8,$9,COALESCE($10,'PT'),$11,$12,$13,$14)
          RETURNING *`,
         [b.id_ordem, b.denominacao, b.descricao || null, b.lat ?? null, b.lng ?? null, b.morada || null,
-         b.estado || null, motivo, b.country || null, b.zona || null, b.department_id || null, b.team_id || null, req.user.uid]
+         b.estado || null, motivo, rdv, b.country || null, b.zona || null, b.department_id || null, b.team_id || null, req.user.uid]
       );
       await logHistory(client, { workId: rows[0].id, userId: req.user.uid, action: 'CREATE', note: b.id_ordem });
       return rows[0];
@@ -168,6 +173,8 @@ router.put('/:id', requireManageWorks, async (req, res) => {
   }
   // Se o estado deixa de ser PENDENTE, limpa o motivo automaticamente.
   if ('estado' in b && b.estado !== 'PENDENTE') b.pendente_motivo = null;
+  // Se o estado deixa de ser RDV_AGENDADO, limpa a data de RDV.
+  if ('estado' in b && b.estado !== 'RDV_AGENDADO') b.rdv_data = null;
   // Se muda de departamento, a zona acompanha a do departamento.
   if ('department_id' in b && b.department_id) b.zona = await deptZona(b.department_id);
   const updates = EDITABLE.filter((f) => f in b);
@@ -181,6 +188,10 @@ router.put('/:id', requireManageWorks, async (req, res) => {
     const finalCountry = 'country' in b ? b.country : existing[0].country;
     const finalDept = 'department_id' in b ? b.department_id : existing[0].department_id;
     if (!canMutateWork(req.user, { country: finalCountry, department_id: finalDept })) return { forbidden: true };
+    // RDV: se o estado final é RDV_AGENDADO, a data é obrigatória.
+    const finalEstado = 'estado' in b ? b.estado : existing[0].estado;
+    const finalRdv = 'rdv_data' in b ? b.rdv_data : existing[0].rdv_data;
+    if (finalEstado === 'RDV_AGENDADO' && !finalRdv) return { needRdv: true };
 
     const setParts = updates.map((f, i) => `${f} = $${i + 1}`);
     const values = updates.map((f) => b[f]);
@@ -194,6 +205,7 @@ router.put('/:id', requireManageWorks, async (req, res) => {
   });
   if (result.notFound) return res.status(404).json({ error: 'Trabalho não encontrado' });
   if (result.forbidden) return res.status(403).json({ error: 'Fora do seu âmbito' });
+  if (result.needRdv) return res.status(400).json({ error: 'Indique a data do RDV (obrigatória quando RDV Agendado).' });
   res.json({ work: result.work });
 });
 

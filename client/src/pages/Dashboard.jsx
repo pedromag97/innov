@@ -5,6 +5,7 @@ import { STATES, stateColor } from '../states.js';
 import MapView from '../components/MapView.jsx';
 import StateBadge from '../components/StateBadge.jsx';
 import CountryFlag from '../components/CountryFlag.jsx';
+import { fmtDate } from '../format.js';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -165,11 +166,16 @@ export default function Dashboard() {
                     <button key={w.id} onClick={() => navigate(`/trabalhos/${w.id}/editar`)}
                       className={`w-full text-left p-3 hover:bg-slate-50 flex items-start justify-between gap-2 ${isEntregue(w) ? 'border-l-4 border-emerald-600 bg-emerald-50/40' : ''}`}>
                       <span className="min-w-0">
-                        <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium text-slate-800">{w.pm || w.id_ordem}</span>
                           {w.tipo_trabalho && (
                             <span className="rounded bg-slate-800 text-white text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5">
                               {w.tipo_trabalho}
+                            </span>
+                          )}
+                          {w.estado === 'RDV_AGENDADO' && w.rdv_data && (
+                            <span className="rounded bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5">
+                              📅 RDV {fmtDate(w.rdv_data)}
                             </span>
                           )}
                         </span>

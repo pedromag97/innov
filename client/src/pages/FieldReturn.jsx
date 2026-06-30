@@ -12,6 +12,7 @@ export default function FieldReturn() {
   const [work, setWork] = useState(null);
   const [estado, setEstado] = useState('');
   const [motivo, setMotivo] = useState('');
+  const [rdv, setRdv] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [files, setFiles] = useState([]);
   const [gps, setGps] = useState(null);     // {lat, lng}
@@ -22,7 +23,7 @@ export default function FieldReturn() {
 
   useEffect(() => {
     api.getWork(id)
-      .then((d) => { setWork(d.work); setEstado(d.work.estado); setMotivo(d.work.pendente_motivo || ''); })
+      .then((d) => { setWork(d.work); setEstado(d.work.estado); setMotivo(d.work.pendente_motivo || ''); setRdv(d.work.rdv_data || ''); })
       .catch((e) => setError(e.message));
   }, [id]);
 
@@ -46,10 +47,12 @@ export default function FieldReturn() {
   async function onSubmit(e) {
     e.preventDefault();
     setError('');
+    if (estado === 'RDV_AGENDADO' && !rdv) { setError('Indique a data do RDV.'); return; }
     setSubmitting(true);
     const fd = new FormData();
     fd.append('new_estado', estado);
     fd.append('pendente_motivo', estado === 'PENDENTE' ? (motivo || '') : '');
+    fd.append('rdv_data', estado === 'RDV_AGENDADO' ? (rdv || '') : '');
     fd.append('observacoes', observacoes);
     if (gps) { fd.append('gps_lat', gps.lat); fd.append('gps_lng', gps.lng); }
     files.forEach((f) => fd.append('photos', f));
@@ -117,6 +120,13 @@ export default function FieldReturn() {
               <option value="">— sem motivo —</option>
               {PENDENTE_MOTIVOS.map((m) => <option key={m.code} value={m.code}>{m.label}</option>)}
             </select>
+          </label>
+        )}
+        {estado === 'RDV_AGENDADO' && (
+          <label className="block">
+            <span className="block text-xs font-medium text-slate-500 mb-1">Data do RDV *</span>
+            <input type="date" required value={rdv} onChange={(e) => setRdv(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
           </label>
         )}
 
