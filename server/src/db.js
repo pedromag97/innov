@@ -4,12 +4,17 @@ import config from './config.js';
 // DATE (OID 1082) -> string 'YYYY-MM-DD' (evita desvios de fuso ao serializar).
 pg.types.setTypeParser(1082, (v) => v);
 
+// SSL: ativa automaticamente para Postgres cloud (Neon/Supabase/Render/Railway)
+// ou quando a connection string pede sslmode=require / PGSSL=require.
+const dbUrl = config.databaseUrl || '';
+const needsSsl = process.env.PGSSL === 'require'
+  || /sslmode=require/i.test(dbUrl)
+  || /neon\.tech|supabase\.|render\.com|railway|amazonaws\.com|azure/i.test(dbUrl);
+
 // Single shared pool for the whole API.
 export const pool = new pg.Pool({
   connectionString: config.databaseUrl,
-  // Railway/Render managed Postgres usually needs SSL. Toggle via DATABASE_URL
-  // sslmode or this flag if your provider requires it.
-  ssl: process.env.PGSSL === 'require' ? { rejectUnauthorized: false } : undefined,
+  ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
 });
 
 pool.on('error', (err) => {
