@@ -10,6 +10,7 @@
 // To add/rename a state, edit ONLY this file.
 
 export const STATES = [
+  { code: 'A_FAZER',               label: 'A Fazer',                 color: '#64748b', kml: 'ff8b7464' },
   { code: 'PENDENTE',              label: 'Pendente',                color: '#1d4ed8', kml: 'ffd2481d' },
   { code: 'RDV_AGENDADO',          label: 'RDV Agendado',            color: '#a855f7', kml: 'fff755a8' },
   { code: 'NOK',                   label: 'NOK',                     color: '#dc2626', kml: 'ff2626dc' },

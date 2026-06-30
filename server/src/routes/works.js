@@ -12,7 +12,7 @@ router.use(requireAuth);
 
 // Campos editáveis.
 const EDITABLE = ['id_ordem', 'denominacao', 'descricao', 'lat', 'lng', 'morada', 'geocoded', 'estado', 'pendente_motivo', 'rdv_data',
-  'country', 'zona', 'department_id', 'team_id', 'pm', 'commune', 'sro_bpi', 'tipo_trabalho', 'cdt', 'tarefas', 'ticket_ref',
+  'data_entrega', 'data_limite', 'country', 'zona', 'department_id', 'team_id', 'pm', 'commune', 'sro_bpi', 'tipo_trabalho', 'cdt', 'tarefas', 'ticket_ref',
   'valor', 'attachement_feito', 'attachement_enviado'];
 
 // Coordenadas em falta? Geocodifica a partir da morada -> commune (degrada suave).
@@ -162,12 +162,12 @@ router.post('/', requireManageWorks, async (req, res) => {
       const valor = b.valor === '' || b.valor == null ? null : b.valor;
       const { rows } = await client.query(
         `INSERT INTO works (id_ordem, denominacao, descricao, pm, commune, sro_bpi, tipo_trabalho, cdt, tarefas, ticket_ref, valor,
-                            lat, lng, geocoded, morada, estado, pendente_motivo, rdv_data, country, zona, department_id, team_id, created_by)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,COALESCE($16,'PENDENTE'),$17,$18,COALESCE($19,'PT'),$20,$21,$22,$23)
+                            lat, lng, geocoded, morada, estado, pendente_motivo, rdv_data, data_entrega, data_limite, country, zona, department_id, team_id, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,COALESCE($16,'PENDENTE'),$17,$18,$19,$20,COALESCE($21,'PT'),$22,$23,$24,$25)
          RETURNING *`,
         [b.id_ordem, b.denominacao, b.descricao || null, b.pm || null, b.commune || null, b.sro_bpi || null,
          b.tipo_trabalho || null, b.cdt || null, b.tarefas || null, b.ticket_ref || null, valor,
-         lat, lng, geocoded, b.morada || null, b.estado || null, motivo, rdv,
+         lat, lng, geocoded, b.morada || null, b.estado || null, motivo, rdv, b.data_entrega || null, b.data_limite || null,
          b.country || null, b.zona || null, b.department_id || null, b.team_id || null, req.user.uid]
       );
       await logHistory(client, { workId: rows[0].id, userId: req.user.uid, action: 'CREATE', note: b.id_ordem });

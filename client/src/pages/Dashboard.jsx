@@ -5,6 +5,7 @@ import { STATES, stateColor } from '../states.js';
 import MapView from '../components/MapView.jsx';
 import StateBadge from '../components/StateBadge.jsx';
 import CountryFlag from '../components/CountryFlag.jsx';
+import Countdown from '../components/Countdown.jsx';
 import { fmtDate } from '../format.js';
 
 export default function Dashboard() {
@@ -187,6 +188,7 @@ export default function Dashboard() {
                               📅 RDV {fmtDate(w.rdv_data)}
                             </span>
                           )}
+                          {w.data_limite && <Countdown date={w.data_limite} />}
                           <span className="text-xs text-slate-400">
                             {[w.commune || w.zona, w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
                           </span>

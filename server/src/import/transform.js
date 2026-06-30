@@ -33,6 +33,17 @@ function clean(v) {
   return EMPTY.has(s.toLowerCase()) ? '' : s;
 }
 
+// Converte uma data DD/MM/AAAA (ou DD-MM-AAAA) em ISO YYYY-MM-DD; senão null.
+function toIsoDate(s) {
+  const m = String(s || '').trim().match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})$/);
+  if (!m) return null;
+  let [, d, mo, y] = m;
+  if (y.length === 2) y = '20' + y;
+  const dd = d.padStart(2, '0'), mm = mo.padStart(2, '0');
+  if (+mm < 1 || +mm > 12 || +dd < 1 || +dd > 31) return null;
+  return `${y}-${mm}-${dd}`;
+}
+
 function importKey(profile, rec) {
   return [profile.name, rec.denominacao, rec.commune, rec.pm, rec.data_entrega]
     .map((x) => String(x || '').toLowerCase().trim()).join('|');
@@ -81,7 +92,7 @@ export function transformRow(row, cols, profile) {
     country: profile.country,
     zona: profile.zona,
     source: profile.name,
-    data_entrega: data_entrega || null,
+    data_entrega: toIsoDate(data_entrega),
     teamName: get('team') || profile.defaultTeam || null,
   };
   rec.import_key = importKey(profile, rec);

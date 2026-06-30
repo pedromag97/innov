@@ -5,12 +5,14 @@ import { STATES, PENDENTE_MOTIVOS } from '../states.js';
 import MapView from '../components/MapView.jsx';
 import StateBadge from '../components/StateBadge.jsx';
 import CountryFlag from '../components/CountryFlag.jsx';
+import Countdown from '../components/Countdown.jsx';
 
 const EMPTY = {
   id_ordem: '', denominacao: '', descricao: '',
   pm: '', commune: '', sro_bpi: '', tipo_trabalho: '', cdt: '', tarefas: '', ticket_ref: '', valor: '',
   lat: null, lng: null, morada: '',
-  estado: 'PENDENTE', pendente_motivo: '', rdv_data: '', country: 'PT', zona: '', department_id: '', team_id: '',
+  estado: 'PENDENTE', pendente_motivo: '', rdv_data: '', data_entrega: '', data_limite: '',
+  country: 'PT', zona: '', department_id: '', team_id: '',
 };
 
 // Garante que o valor atual (ex.: importado, fora do catálogo) aparece na lista.
@@ -54,7 +56,7 @@ export default function WorkForm() {
     if (!isEdit) return;
     api.getWork(id).then((d) => setForm({
       ...EMPTY, ...d.work, team_id: d.work.team_id || '', department_id: d.work.department_id || '',
-      rdv_data: d.work.rdv_data || '',
+      rdv_data: d.work.rdv_data || '', data_entrega: d.work.data_entrega || '', data_limite: d.work.data_limite || '',
     })).catch((e) => setError(e.message));
     api.getWorkHistory(id).then((d) => setHistory(d.history)).catch(() => {});
     api.getWorkReturns(id).then((d) => setReturns(d.returns)).catch(() => {});
@@ -109,6 +111,8 @@ export default function WorkForm() {
       department_id: form.department_id || null,
       pendente_motivo: form.estado === 'PENDENTE' ? (form.pendente_motivo || null) : null,
       rdv_data: form.estado === 'RDV_AGENDADO' ? (form.rdv_data || null) : null,
+      data_entrega: form.data_entrega || null,
+      data_limite: form.data_limite || null,
       valor: form.valor === '' || form.valor == null ? null : Number(form.valor),
     };
     if (form.estado === 'RDV_AGENDADO' && !form.rdv_data) {
@@ -185,6 +189,14 @@ export default function WorkForm() {
           <Field label="Valor (€)"><input type="number" step="0.01" min="0" value={form.valor ?? ''} onChange={set('valor')} className="inp" placeholder="0.00" /></Field>
         </div>
         <Field label="Descrição / Observações"><textarea value={form.descricao || ''} onChange={set('descricao')} rows={2} className="inp" /></Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Data de entrega"><input type="date" value={form.data_entrega || ''} onChange={set('data_entrega')} className="inp" /></Field>
+          <Field label="Data limite (fecho)">
+            <input type="date" value={form.data_limite || ''} onChange={set('data_limite')} className="inp" />
+            {form.data_limite && <div className="mt-1"><Countdown date={form.data_limite} /></div>}
+          </Field>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Estado">

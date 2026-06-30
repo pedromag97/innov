@@ -121,6 +121,8 @@ CREATE TABLE IF NOT EXISTS works (
   estado          TEXT NOT NULL DEFAULT 'PENDENTE',  -- código de shared/states.js
   pendente_motivo TEXT,                              -- motivo (só quando estado = PENDENTE)
   rdv_data        DATE,                              -- data do RDV (obrigatória quando estado = RDV_AGENDADO)
+  data_entrega    DATE,                              -- data de entrega/atribuição do trabalho
+  data_limite     DATE,                              -- prazo limite para fecho (contagem decrescente)
   country       TEXT NOT NULL DEFAULT 'PT',          -- 'PT' | 'FR'
   zona          TEXT,                                -- zona/projeto (texto livre) — filtro
   department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,  -- âmbito do CDT

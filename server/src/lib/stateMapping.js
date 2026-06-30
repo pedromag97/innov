@@ -27,7 +27,7 @@ const RULES = [
   [/\bnok\b/,                                                             'NOK',                   null],
   // Uma data isolada na coluna de estado/retorno = concluído/enviado nessa data.
   [/^\d{1,2}[\/.\-]\d{1,2}([\/.\-]\d{2,4})?$/,                            'FEITO',                 null],
-  [/a fazer|a faire|att a fazer/,                                         'PENDENTE',              null],
+  [/a fazer|a faire|att a fazer|^a faire$|por fazer|to ?do/,              'A_FAZER',               null],
   [/feito|\bfait\b|termine|^ok\b|^ok-|^ok /,                              'FEITO',                 null],
   [/aguarda|attente|en attente|odeon|bloque|bloquead|em espera|en espera|\bespera\b|novo estudo|nouvelle etude/, 'PENDENTE', null],
   [/pendente|pending/,                                                    'PENDENTE',              null],
