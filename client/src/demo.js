@@ -29,6 +29,17 @@ let countriesData = [
   { code: 'PT', name: 'Portugal', active: true },
   { code: 'FR', name: 'França', active: true },
 ];
+
+// Anexos (em memória, por trabalho).
+let attSeq = 1;
+const attData = new Map();
+const demoKind = (mime, name) => {
+  const m = String(mime || '').toLowerCase(); const n = String(name || '').toLowerCase();
+  if (m.startsWith('image/')) return 'image';
+  if (m === 'application/pdf' || n.endsWith('.pdf')) return 'pdf';
+  if (m === 'message/rfc822' || n.endsWith('.eml') || n.endsWith('.msg')) return 'email';
+  return 'other';
+};
 const departments = [
   { id: 1, code: 'ERT45', name: 'ERT 45', country: 'FR', zona: 'Orleans', active: true },
   { id: 2, code: 'ERT38', name: 'ERT 38', country: 'FR', zona: 'Grenoble', active: true },
@@ -158,6 +169,21 @@ function buildKml(list) {
 export const demoApi = {
   login: () => delay({ token: 'demo', user: users[0] }),
   changePassword: () => delay({ ok: true }),
+  // Anexos (em memória; guarda o File para preview/download funcionarem em demo).
+  listAttachments: (workId) => delay({ attachments: (attData.get(String(workId)) || []).map(({ _file, ...m }) => clone(m)) }),
+  uploadAttachments: (workId, fd) => {
+    const list = attData.get(String(workId)) || [];
+    const out = [];
+    for (const f of fd.getAll('files')) {
+      const it = { id: attSeq++, filename: f.name, mime_type: f.type, size: f.size, kind: demoKind(f.type, f.name), created_at: new Date().toISOString(), _file: f };
+      list.push(it);
+      out.push({ id: it.id, filename: it.filename, mime_type: it.mime_type, size: it.size, kind: it.kind, created_at: it.created_at });
+    }
+    attData.set(String(workId), list);
+    return delay({ attachments: out });
+  },
+  deleteAttachment: (workId, attId) => { attData.set(String(workId), (attData.get(String(workId)) || []).filter((a) => String(a.id) !== String(attId))); return delay({ ok: true }); },
+  downloadAttachment: (workId, attId) => { const a = (attData.get(String(workId)) || []).find((x) => String(x.id) === String(attId)); return Promise.resolve(a?._file || new Blob()); },
   // Geocode simulado: devolve um ponto plausível (jitter à volta de FR/PT).
   geocode: (q, country) => {
     const base = country === 'PT' ? { lat: 39.5, lng: -8.0 } : { lat: 46.6, lng: 2.4 };

@@ -57,6 +57,18 @@ const realApi = {
   // returns (multipart)
   submitReturn: (id, formData) => request('POST', `/works/${id}/returns`, { body: formData, isForm: true }),
 
+  // anexos do trabalho (ficheiros no servidor)
+  listAttachments: (workId) => request('GET', `/works/${workId}/attachments`),
+  uploadAttachments: (workId, formData) => request('POST', `/works/${workId}/attachments`, { body: formData, isForm: true }),
+  deleteAttachment: (workId, attId) => request('DELETE', `/works/${workId}/attachments/${attId}`),
+  downloadAttachment: async (workId, attId) => {
+    const res = await fetch(`${BASE}/api/works/${workId}/attachments/${attId}/download`, {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+    });
+    if (!res.ok) throw new Error(`Download falhou (${res.status})`);
+    return res.blob();
+  },
+
   // teams / users
   listTeams: (department_id) => request('GET', `/teams${department_id ? `?department_id=${department_id}` : ''}`),
   createTeam: (body) => request('POST', '/teams', { body }),

@@ -209,6 +209,22 @@ CREATE TABLE IF NOT EXISTS work_photos (
 CREATE INDEX IF NOT EXISTS idx_photos_return ON work_photos (return_id);
 
 -- ─────────────────────────────────────────────────────────────────────────
+-- work_attachments — anexos do trabalho (PDF/imagens/mails), ficheiro no servidor
+-- ─────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS work_attachments (
+  id          SERIAL PRIMARY KEY,
+  work_id     INTEGER NOT NULL REFERENCES works(id) ON DELETE CASCADE,
+  filename    TEXT NOT NULL,
+  stored_name TEXT NOT NULL,
+  mime_type   TEXT,
+  size        INTEGER,
+  kind        TEXT,                          -- 'image' | 'pdf' | 'email' | 'other'
+  uploaded_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_attach_work ON work_attachments (work_id);
+
+-- ─────────────────────────────────────────────────────────────────────────
 -- work_history — histórico de alterações por trabalho
 -- ─────────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS work_history (

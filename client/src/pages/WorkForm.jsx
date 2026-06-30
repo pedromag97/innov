@@ -6,6 +6,7 @@ import MapView from '../components/MapView.jsx';
 import StateBadge from '../components/StateBadge.jsx';
 import CountryFlag from '../components/CountryFlag.jsx';
 import Countdown from '../components/Countdown.jsx';
+import Attachments from '../components/Attachments.jsx';
 import { useCountries } from '../hooks/useCountries.js';
 
 const EMPTY = {
@@ -277,6 +278,8 @@ export default function WorkForm() {
             onDragEnd={onDragEnd}
           />
         </div>
+
+        {isEdit && <Attachments workId={id} canEdit />}
 
         {isEdit && returns.length > 0 && (
           <div className="rounded-xl border border-slate-200 bg-white p-4">

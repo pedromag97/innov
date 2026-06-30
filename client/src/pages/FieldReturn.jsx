@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { STATES, PENDENTE_MOTIVOS } from '../states.js';
 import StateBadge from '../components/StateBadge.jsx';
 import CountryFlag from '../components/CountryFlag.jsx';
+import Attachments from '../components/Attachments.jsx';
 
 export default function FieldReturn() {
   const { id } = useParams();
@@ -118,6 +119,9 @@ export default function FieldReturn() {
           <p className="text-sm text-amber-900 whitespace-pre-wrap">{example}</p>
         </div>
       )}
+
+      {/* Anexos do trabalho (instruções, PDFs, mails) — só leitura para o terreno */}
+      <Attachments workId={work.id} canEdit={false} />
 
       {/* Formulário de retorno */}
       <form onSubmit={onSubmit} className="rounded-xl border border-slate-200 bg-white p-4 space-y-4">

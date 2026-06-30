@@ -15,6 +15,9 @@ const config = {
   driveServiceAccountFile: process.env.GOOGLE_SERVICE_ACCOUNT_FILE,
   driveRootFolderId: process.env.DRIVE_ROOT_FOLDER_ID,
 
+  // Armazenamento de anexos no servidor (relativo à cwd, normalmente server/).
+  uploadsDir: process.env.UPLOADS_DIR || 'uploads',
+
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
   telegramBackofficeChatId: process.env.TELEGRAM_BACKOFFICE_CHAT_ID,
 };

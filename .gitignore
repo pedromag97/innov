@@ -11,6 +11,10 @@ server/service-account.json
 client/dist/
 server/dist/
 
+# anexos carregados (armazenamento local de ficheiros)
+server/uploads/
+uploads/
+
 # logs
 *.log
 npm-debug.log*

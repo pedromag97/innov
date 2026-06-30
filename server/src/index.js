@@ -9,6 +9,7 @@ import config from './config.js';
 import authRoutes from './routes/auth.js';
 import worksRoutes from './routes/works.js';
 import returnsRoutes from './routes/returns.js';
+import attachmentsRoutes from './routes/attachments.js';
 import teamsRoutes from './routes/teams.js';
 import departmentsRoutes from './routes/departments.js';
 import catalogsRoutes from './routes/catalogs.js';
@@ -34,6 +35,7 @@ app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'innov', ts:
 app.use('/api/auth', authRoutes);
 app.use('/api/works', worksRoutes);
 app.use('/api/works', returnsRoutes);   // POST /api/works/:id/returns
+app.use('/api/works', attachmentsRoutes);   // /api/works/:id/attachments
 app.use('/api/teams', teamsRoutes);
 app.use('/api/departments', departmentsRoutes);
 app.use('/api', catalogsRoutes);   // /api/work-types, /api/cdts
