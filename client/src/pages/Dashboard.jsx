@@ -17,6 +17,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState('');
+  const [collapsed, setCollapsed] = useState(() => new Set()); // zonas minimizadas (por chave de grupo)
+  const toggleGroup = (key) => setCollapsed((prev) => {
+    const next = new Set(prev);
+    next.has(key) ? next.delete(key) : next.add(key);
+    return next;
+  });
 
   useEffect(() => { api.listTeams().then((d) => setTeams(d.teams)).catch(() => {}); }, []);
   useEffect(() => { api.listDepartments().then((d) => setDepartments(d.departments)).catch(() => {}); }, []);
@@ -148,20 +154,29 @@ export default function Dashboard() {
             <p className="p-4 text-sm text-slate-500">A carregar…</p>
           ) : works.length === 0 ? (
             <p className="p-4 text-sm text-slate-500">Sem trabalhos para estes filtros.</p>
-          ) : grouped.map(({ country, label, items }) => (
-              <div key={`${country}|${label}`}>
-                <div className="sticky top-0 z-[1] flex items-center gap-2 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 border-b border-slate-200">
+          ) : grouped.map(({ country, label, items }) => {
+              const gkey = `${country}|${label}`;
+              const isCollapsed = collapsed.has(gkey);
+              return (
+              <div key={gkey}>
+                <button type="button" onClick={() => toggleGroup(gkey)}
+                  className="sticky top-0 z-[1] w-full flex items-center gap-2 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 border-b border-slate-200 hover:bg-slate-200">
+                  <span className="text-slate-400 w-3 text-center">{isCollapsed ? '▸' : '▾'}</span>
                   <CountryFlag country={country} />
                   <span>{label}</span>
                   <span className="text-slate-400">({items.length})</span>
-                </div>
+                </button>
+                {!isCollapsed && (
                 <div className="divide-y divide-slate-100">
                   {items.map((w) => (
                     <button key={w.id} onClick={() => navigate(`/trabalhos/${w.id}/editar`)}
                       className="w-full text-left p-3 hover:bg-slate-50 flex items-start justify-between gap-2">
                       <span className="min-w-0">
-                        <span className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-slate-800">{w.pm || w.id_ordem}</span>
+                        <span className="flex items-baseline gap-2 min-w-0">
+                          <span className="font-medium text-slate-800 shrink-0">{w.pm || w.id_ordem}</span>
+                          <span className="text-sm text-slate-600 truncate">{w.denominacao}</span>
+                        </span>
+                        <span className="flex items-center gap-2 flex-wrap mt-0.5">
                           {w.tipo_trabalho && (
                             <span className="rounded bg-slate-800 text-white text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5">
                               {w.tipo_trabalho}
@@ -172,10 +187,9 @@ export default function Dashboard() {
                               📅 RDV {fmtDate(w.rdv_data)}
                             </span>
                           )}
-                        </span>
-                        <span className="block text-sm text-slate-500 truncate">{w.denominacao}</span>
-                        <span className="block text-xs text-slate-400">
-                          {[w.commune || w.zona, w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
+                          <span className="text-xs text-slate-400">
+                            {[w.commune || w.zona, w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
+                          </span>
                         </span>
                       </span>
                       <span className="flex flex-col items-end gap-1.5 shrink-0">
@@ -187,8 +201,10 @@ export default function Dashboard() {
                     </button>
                   ))}
                 </div>
+                )}
               </div>
-            ))}
+              );
+            })}
         </div>
       </aside>
     </div>
