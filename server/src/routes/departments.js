@@ -9,18 +9,18 @@ router.use(requireAuth);
 
 // GET /api/departments — lista (p/ dropdowns/filtros).
 router.get('/', async (_req, res) => {
-  const { rows } = await query('SELECT id, code, name, country, active FROM departments ORDER BY country, code');
+  const { rows } = await query('SELECT id, code, name, country, zona, active FROM departments ORDER BY country, code');
   res.json({ departments: rows });
 });
 
 // POST /api/departments — criar (admin).
 router.post('/', requireAdmin, async (req, res) => {
-  const { code, name, country } = req.body || {};
+  const { code, name, country, zona } = req.body || {};
   if (!code || !name) return res.status(400).json({ error: 'code e name obrigatórios' });
   try {
     const { rows } = await query(
-      'INSERT INTO departments (code, name, country) VALUES ($1,$2,COALESCE($3,$4)) RETURNING *',
-      [code, name, country, 'FR']
+      'INSERT INTO departments (code, name, country, zona) VALUES ($1,$2,COALESCE($3,$4),$5) RETURNING *',
+      [code, name, country, 'FR', zona || null]
     );
     res.status(201).json({ department: rows[0] });
   } catch (err) {
@@ -31,7 +31,7 @@ router.post('/', requireAdmin, async (req, res) => {
 
 // PATCH /api/departments/:id — editar/ativar (admin).
 router.patch('/:id', requireAdmin, async (req, res) => {
-  const allowed = ['code', 'name', 'country', 'active'];
+  const allowed = ['code', 'name', 'country', 'zona', 'active'];
   const b = req.body || {};
   const fields = allowed.filter((f) => f in b);
   if (fields.length === 0) return res.status(400).json({ error: 'Nada para atualizar' });
@@ -40,7 +40,7 @@ router.patch('/:id', requireAdmin, async (req, res) => {
   values.push(req.params.id);
   try {
     const { rows } = await query(
-      `UPDATE departments SET ${set.join(', ')} WHERE id = $${values.length} RETURNING id, code, name, country, active`,
+      `UPDATE departments SET ${set.join(', ')} WHERE id = $${values.length} RETURNING id, code, name, country, zona, active`,
       values
     );
     if (!rows[0]) return res.status(404).json({ error: 'Departamento não encontrado' });

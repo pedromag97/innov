@@ -11,11 +11,12 @@
 -- teams — equipas de terreno
 -- ─────────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS teams (
-  id          SERIAL PRIMARY KEY,
-  name        TEXT NOT NULL UNIQUE,
-  country     TEXT NOT NULL DEFAULT 'PT',   -- 'PT' | 'FR'
-  active      BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+  id            SERIAL PRIMARY KEY,
+  name          TEXT NOT NULL UNIQUE,
+  country       TEXT NOT NULL DEFAULT 'PT',   -- 'PT' | 'FR'
+  department_id INTEGER,                       -- equipa exclusiva de um departamento (FK adicionada após departments)
+  active        BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- ─────────────────────────────────────────────────────────────────────────
@@ -26,9 +27,16 @@ CREATE TABLE IF NOT EXISTS departments (
   code        TEXT NOT NULL UNIQUE,         -- 'ERT45', 'ERT38', 'ERT64'
   name        TEXT NOT NULL,                -- 'ERT 45'
   country     TEXT NOT NULL DEFAULT 'FR',   -- 'PT' | 'FR'
+  zona        TEXT,                         -- cidade/zona do departamento (Orleans/Grenoble/Biarritz)
   active      BOOLEAN NOT NULL DEFAULT TRUE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- FK de teams.department_id (departments já existe acima).
+DO $$ BEGIN
+  ALTER TABLE teams ADD CONSTRAINT teams_department_fk
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- work_types — tipos de trabalho configuráveis POR departamento

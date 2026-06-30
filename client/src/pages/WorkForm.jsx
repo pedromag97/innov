@@ -34,15 +34,18 @@ export default function WorkForm() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { api.listTeams().then((d) => setTeams(d.teams)).catch(() => {}); }, []);
   useEffect(() => { api.listDepartments().then((d) => setDepartments(d.departments)).catch(() => {}); }, []);
 
-  // Catálogos (tipos de trabalho + CDTs) do departamento escolhido.
+  // Catálogos do departamento escolhido: tipos, CDTs, equipas + zona auto.
   useEffect(() => {
-    if (!form.department_id) { setWorkTypes([]); setCdts([]); return; }
-    api.listWorkTypes(form.department_id).then((d) => setWorkTypes(d.items.map((x) => x.name))).catch(() => {});
-    api.listCdts(form.department_id).then((d) => setCdts(d.items.map((x) => x.name))).catch(() => {});
-  }, [form.department_id]);
+    const dep = form.department_id;
+    api.listTeams(dep || undefined).then((d) => setTeams(d.teams)).catch(() => {});
+    if (!dep) { setWorkTypes([]); setCdts([]); return; }
+    api.listWorkTypes(dep).then((d) => setWorkTypes(d.items.map((x) => x.name))).catch(() => {});
+    api.listCdts(dep).then((d) => setCdts(d.items.map((x) => x.name))).catch(() => {});
+    const d = departments.find((x) => String(x.id) === String(dep));
+    if (d && d.zona) setForm((f) => (f.zona === d.zona ? f : { ...f, zona: d.zona }));
+  }, [form.department_id, departments]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -148,7 +151,10 @@ export default function WorkForm() {
               {departments.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.country})</option>)}
             </select>
           </Field>
-          <Field label="Zona"><input value={form.zona || ''} onChange={set('zona')} className="inp" placeholder="Loiret, Isère…" /></Field>
+          <Field label={form.department_id ? 'Zona (do departamento)' : 'Zona'}>
+            <input value={form.zona || ''} onChange={set('zona')} className="inp" disabled={!!form.department_id}
+              placeholder="Orleans, Grenoble…" />
+          </Field>
           <Field label="Ticket ref"><input value={form.ticket_ref || ''} onChange={set('ticket_ref')} className="inp" placeholder="C35…, SRO-BPI…" /></Field>
         </div>
 

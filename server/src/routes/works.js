@@ -19,6 +19,13 @@ async function getWorkScopeRow(id) {
   return rows[0] || null;
 }
 
+// Zona de um departamento (a zona do trabalho é a do departamento).
+async function deptZona(id) {
+  if (!id) return null;
+  const { rows } = await query('SELECT zona FROM departments WHERE id = $1', [id]);
+  return rows[0]?.zona || null;
+}
+
 // ─── GET /api/works ─────────────────────────────────────────────────────
 // Filtros: ?estado=&team_id=&country=&zona=&department_id=&cdt=&tipo_trabalho=&q=
 // Âmbito aplicado conforme o papel do utilizador.
@@ -128,6 +135,8 @@ router.post('/', requireManageWorks, async (req, res) => {
   }
   // Motivo só faz sentido em PENDENTE.
   const motivo = (b.estado || 'PENDENTE') === 'PENDENTE' ? (b.pendente_motivo || null) : null;
+  // Zona = zona do departamento (se houver departamento).
+  if (b.department_id) b.zona = await deptZona(b.department_id);
   try {
     const work = await withTransaction(async (client) => {
       const { rows } = await client.query(
@@ -158,6 +167,8 @@ router.put('/:id', requireManageWorks, async (req, res) => {
   }
   // Se o estado deixa de ser PENDENTE, limpa o motivo automaticamente.
   if ('estado' in b && b.estado !== 'PENDENTE') b.pendente_motivo = null;
+  // Se muda de departamento, a zona acompanha a do departamento.
+  if ('department_id' in b && b.department_id) b.zona = await deptZona(b.department_id);
   const updates = EDITABLE.filter((f) => f in b);
   if (updates.length === 0) return res.status(400).json({ error: 'Nada para atualizar' });
 

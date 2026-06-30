@@ -57,7 +57,7 @@ const realApi = {
   submitReturn: (id, formData) => request('POST', `/works/${id}/returns`, { body: formData, isForm: true }),
 
   // teams / users
-  listTeams: () => request('GET', '/teams'),
+  listTeams: (department_id) => request('GET', `/teams${department_id ? `?department_id=${department_id}` : ''}`),
   createTeam: (body) => request('POST', '/teams', { body }),
   updateTeam: (id, body) => request('PATCH', `/teams/${id}`, { body }),
   listUsers: () => request('GET', '/teams/users'),

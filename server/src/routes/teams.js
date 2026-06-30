@@ -7,20 +7,25 @@ import { isValidRole } from '../lib/scope.js';
 const router = Router();
 router.use(requireAuth);
 
-// GET /api/teams — lista de equipas (qualquer autenticado, p/ filtros/dropdowns).
-router.get('/', async (_req, res) => {
-  const { rows } = await query('SELECT id, name, country, active FROM teams ORDER BY name');
+// GET /api/teams — lista de equipas (qualquer autenticado). Filtro ?department_id=.
+router.get('/', async (req, res) => {
+  const params = [];
+  let where = '';
+  if (req.query.department_id) { params.push(req.query.department_id); where = `WHERE department_id = $${params.length}`; }
+  const { rows } = await query(
+    `SELECT id, name, country, department_id, active FROM teams ${where} ORDER BY name`, params
+  );
   res.json({ teams: rows });
 });
 
 // POST /api/teams — criar equipa (admin).
 router.post('/', requireAdmin, async (req, res) => {
-  const { name, country } = req.body || {};
+  const { name, country, department_id } = req.body || {};
   if (!name) return res.status(400).json({ error: 'name obrigatório' });
   try {
     const { rows } = await query(
-      'INSERT INTO teams (name, country) VALUES ($1, COALESCE($2,$3)) RETURNING *',
-      [name, country, 'PT']
+      'INSERT INTO teams (name, country, department_id) VALUES ($1, COALESCE($2,$3), $4) RETURNING *',
+      [name, country, 'PT', department_id || null]
     );
     res.status(201).json({ team: rows[0] });
   } catch (err) {
@@ -29,18 +34,18 @@ router.post('/', requireAdmin, async (req, res) => {
   }
 });
 
-// PATCH /api/teams/:id — renomear/ativar equipa (admin).
+// PATCH /api/teams/:id — renomear/ativar/atribuir departamento (admin).
 router.patch('/:id', requireAdmin, async (req, res) => {
-  const allowed = ['name', 'country', 'active'];
+  const allowed = ['name', 'country', 'active', 'department_id'];
   const b = req.body || {};
   const fields = allowed.filter((f) => f in b);
   if (fields.length === 0) return res.status(400).json({ error: 'Nada para atualizar' });
   const set = fields.map((f, i) => `${f} = $${i + 1}`);
-  const values = fields.map((f) => b[f]);
+  const values = fields.map((f) => (f === 'department_id' ? (b[f] || null) : b[f]));
   values.push(req.params.id);
   try {
     const { rows } = await query(
-      `UPDATE teams SET ${set.join(', ')} WHERE id = $${values.length} RETURNING id, name, country, active`,
+      `UPDATE teams SET ${set.join(', ')} WHERE id = $${values.length} RETURNING id, name, country, department_id, active`,
       values
     );
     if (!rows[0]) return res.status(404).json({ error: 'Equipa não encontrada' });
