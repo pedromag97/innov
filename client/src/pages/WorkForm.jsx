@@ -14,7 +14,7 @@ const EMPTY = {
   pm: '', commune: '', sro_bpi: '', tipo_trabalho: '', cdt: '', tarefas: '', ticket_ref: '', valor: '',
   lat: null, lng: null, morada: '',
   estado: 'PENDENTE', pendente_motivo: '', rdv_data: '', data_entrega: '', data_limite: '',
-  country: 'PT', zona: '', department_id: '', team_id: '',
+  visivel_terreno: true, country: 'PT', zona: '', department_id: '', team_id: '',
 };
 
 // Garante que o valor atual (ex.: importado, fora do catálogo) aparece na lista.
@@ -230,6 +230,22 @@ export default function WorkForm() {
           </Field>
           <Field label="Ticket ref"><input value={form.ticket_ref || ''} onChange={set('ticket_ref')} className="inp" placeholder="C35…, SRO-BPI…" /></Field>
         </div>
+
+        {form.estado === 'PENDENTE' && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input type="checkbox" checked={form.visivel_terreno !== false}
+                onChange={(e) => setForm((f) => ({ ...f, visivel_terreno: e.target.checked }))} className="mt-0.5" />
+              <span className="text-sm">
+                <span className="font-medium text-amber-900">Mostrar no mapa e à equipa de terreno</span>
+                <span className="block text-xs text-amber-700">
+                  Trabalho pendente — se ainda não vale a pena enviar ao terreno (ex.: à espera de GC/CRVT/neve),
+                  desmarca para o esconder do mapa e da equipa de terreno.
+                </span>
+              </span>
+            </label>
+          </div>
+        )}
 
         <Field label="Morada (georreferenciada automaticamente)">
           <div className="flex gap-2">

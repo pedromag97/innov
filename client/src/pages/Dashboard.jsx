@@ -40,7 +40,7 @@ export default function Dashboard() {
   }, [filters]);
 
   const points = useMemo(
-    () => works.map((w) => ({
+    () => works.filter((w) => w.visivel_terreno !== false).map((w) => ({
       id: w.id, lat: w.lat, lng: w.lng, estado: w.estado,
       title: `${w.id_ordem} — ${w.denominacao}`,
       subtitle: [w.commune || w.zona, w.tipo_trabalho].filter(Boolean).join(' · '),
@@ -190,10 +190,20 @@ export default function Dashboard() {
                             </span>
                           )}
                           {w.data_limite && <Countdown date={w.data_limite} />}
+                          {w.visivel_terreno === false && (
+                            <span className="rounded bg-slate-200 text-slate-600 text-[10px] font-semibold px-1.5 py-0.5" title="Não visível no mapa nem para a equipa de terreno">
+                              🚫 oculto do terreno
+                            </span>
+                          )}
                           <span className="text-xs text-slate-400">
                             {[w.commune || w.zona, w.team_name, w.cdt && `CDT: ${w.cdt}`].filter(Boolean).join(' · ')}
                           </span>
                         </span>
+                        {w.tarefas && (
+                          <span className="block text-xs text-slate-500 truncate mt-0.5" title={w.tarefas}>
+                            🛠️ {w.tarefas}
+                          </span>
+                        )}
                       </span>
                       <span className="flex flex-col items-end gap-1.5 shrink-0">
                         <StateBadge code={w.estado} motivo={w.pendente_motivo} />

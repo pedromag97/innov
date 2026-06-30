@@ -10,6 +10,7 @@
     "migrate": "node src/migrate.js",
     "seed": "node src/seed.js",
     "seed:pms": "node src/seed-pms.js",
+    "seed:catalogs": "node src/seed-catalogs-from-works.js",
     "geocode": "node src/geocode-works.js"
   },
   "dependencies": {

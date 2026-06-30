@@ -138,6 +138,7 @@ CREATE TABLE IF NOT EXISTS works (
   department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,  -- âmbito do CDT
   team_id       INTEGER REFERENCES teams(id) ON DELETE SET NULL,
   -- Fluxo de entrega ao cliente/operador
+  visivel_terreno BOOLEAN NOT NULL DEFAULT true,  -- visível à equipa de terreno + no mapa
   pending_delivery BOOLEAN NOT NULL DEFAULT false, -- tem retorno por entregar
   delivered_at  TIMESTAMPTZ,                  -- quando foi entregue ao operador
   -- Faturação (após entrega)

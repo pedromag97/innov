@@ -93,7 +93,7 @@ function getDemoUser() {
 
 // Trabalhos de exemplo — mistura PT + França real (Loiret/Isère), estados variados.
 let works = [
-  { id: 1, id_ordem: 'ORD-1001', denominacao: 'Caixa CTO Av. Liberdade', pm: 'PM012', commune: 'Lisboa', tipo_trabalho: 'POIV', cdt: 'Rogério Pinto', tarefas: '120m 12FO, 1 PBO', estado: 'PENDENTE', pendente_motivo: 'GC_ENVIAR_CRVT', data_entrega: '2026-06-20', data_limite: '2026-07-03', lat: 38.7223, lng: -9.1393, country: 'PT', zona: 'Lisboa', team_id: 2, team_name: 'Equipa Centro' },
+  { id: 1, id_ordem: 'ORD-1001', denominacao: 'Caixa CTO Av. Liberdade', pm: 'PM012', commune: 'Lisboa', tipo_trabalho: 'POIV', cdt: 'Rogério Pinto', tarefas: '120m 12FO, 1 PBO', estado: 'PENDENTE', pendente_motivo: 'GC_ENVIAR_CRVT', data_entrega: '2026-06-20', data_limite: '2026-07-03', visivel_terreno: false, lat: 38.7223, lng: -9.1393, country: 'PT', zona: 'Lisboa', team_id: 2, team_name: 'Equipa Centro' },
   { id: 2, id_ordem: 'ORD-1002', denominacao: 'Poste Rua Augusta', pm: 'PM008', commune: 'Lisboa', tipo_trabalho: 'VTL', cdt: 'Marco Mendes', tarefas: '5 LRs', estado: 'A_FAZER', pendente_motivo: null, data_entrega: '2026-06-29', data_limite: '2026-07-01', lat: 38.7100, lng: -9.1369, country: 'PT', zona: 'Lisboa', team_id: 2, team_name: 'Equipa Centro' },
   { id: 3, id_ordem: 'ORD-1003', denominacao: 'Raccordement Boavista', pm: 'PM40A0', commune: 'Porto', tipo_trabalho: 'DEPLOIMENT', cdt: 'Bernardo Silva', tarefas: 'Tirage 300m', estado: 'TIRAGE_OK_FALTA_RACCO', pendente_motivo: null, lat: 41.1579, lng: -8.6291, country: 'PT', zona: 'Porto', team_id: 1, team_name: 'Equipa Norte' },
   { id: 4, id_ordem: 'ORD-1006', denominacao: 'CTO Matosinhos', pm: 'PM001', commune: 'Matosinhos', tipo_trabalho: 'ZMD', cdt: 'Rogério Pinto', tarefas: '200m 24FO', estado: 'FEITO', pendente_motivo: null, lat: 41.1844, lng: -8.6916, country: 'PT', zona: 'Porto', team_id: 1, team_name: 'Equipa Norte' },
@@ -144,6 +144,7 @@ function filterWorks(params = {}) {
   const user = getDemoUser();
   return works.filter((w) => {
     if (!inScope(w, user)) return false;
+    if (user.role === 'TERRENO' && w.visivel_terreno === false) return false;
     if (params.active && (w.estado === 'FEITO' || w.estado === 'ENTREGUE')) return false;
     if (params.estado && w.estado !== params.estado) return false;
     if (params.team_id && String(w.team_id) !== String(params.team_id)) return false;
