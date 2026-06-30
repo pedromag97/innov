@@ -46,7 +46,7 @@ export default function Admin() {
 }
 
 const COUNTRIES = [{ code: 'PT', label: 'Portugal' }, { code: 'FR', label: 'França' }];
-const EMPTY_USER = { id: null, email: '', name: '', role: 'TERRENO', team_id: '', countries: [], department_ids: [] };
+const EMPTY_USER = { id: null, email: '', name: '', role: 'TERRENO', team_id: '', countries: [], department_ids: [], password: '' };
 
 function UsersPanel({ users, teams, departments, onChange, setError }) {
   const [form, setForm] = useState(EMPTY_USER);
@@ -60,6 +60,7 @@ function UsersPanel({ users, teams, departments, onChange, setError }) {
     setForm({
       id: u.id, email: u.email, name: u.name || '', role: u.role,
       team_id: u.team_id || '', countries: u.countries || [], department_ids: u.department_ids || [],
+      password: '',
     });
   }
 
@@ -70,6 +71,8 @@ function UsersPanel({ users, teams, departments, onChange, setError }) {
       team_id: form.role === 'TERRENO' ? (form.team_id || null) : null,
       countries: form.role === 'BACKOFFICE' ? form.countries : [],
       department_ids: form.role === 'CDT' ? form.department_ids : [],
+      // Só envia a palavra-passe se foi preenchida (em edição, em branco = manter).
+      ...(form.password ? { password: form.password } : {}),
     };
     try {
       if (form.id) await api.updateUser(form.id, body);
@@ -97,7 +100,7 @@ function UsersPanel({ users, teams, departments, onChange, setError }) {
         </div>
         <div className="grid sm:grid-cols-3 gap-2">
           <label className="block sm:col-span-2">
-            <span className="lbl">Email Google *</span>
+            <span className="lbl">Email *</span>
             <input required type="email" value={form.email} onChange={set('email')} disabled={!!form.id} className="adm-inp" placeholder="pessoa@empresa.pt" />
           </label>
           <label className="block">
@@ -109,6 +112,11 @@ function UsersPanel({ users, teams, departments, onChange, setError }) {
             <select value={form.role} onChange={set('role')} className="adm-inp">
               {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
             </select>
+          </label>
+          <label className="block sm:col-span-2">
+            <span className="lbl">{form.id ? 'Nova palavra-passe (em branco = manter)' : 'Palavra-passe *'}</span>
+            <input type="password" value={form.password} onChange={set('password')} required={!form.id}
+              autoComplete="new-password" minLength={6} className="adm-inp" placeholder="mínimo 6 caracteres" />
           </label>
 
           {/* Âmbito conforme o papel */}

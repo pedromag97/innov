@@ -39,7 +39,8 @@ async function request(method, path, { body, isForm } = {}) {
 
 const realApi = {
   // auth
-  loginGoogle: (idToken) => request('POST', '/auth/google', { body: { idToken } }),
+  login: (email, password) => request('POST', '/auth/login', { body: { email, password } }),
+  changePassword: (current, next) => request('POST', '/auth/password', { body: { current, next } }),
 
   // works
   listWorks: (params = {}) => {

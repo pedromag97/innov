@@ -2,6 +2,7 @@
 //   npm run seed
 import { pool } from './db.js';
 import config from './config.js';
+import { hashPassword } from './middleware/auth.js';
 
 async function main() {
   console.log('[seed] a inserir dados iniciais...');
@@ -48,13 +49,16 @@ async function main() {
     teamIds[t.name] = rows[0].id;
   }
 
-  // 1º administrador (login só funciona se for uma conta Google real).
+  // 1º administrador — login por email + palavra-passe (SEED_ADMIN_EMAIL/PASSWORD).
+  // Só define a password no primeiro seed (não a sobrepõe se já existir).
+  const adminHash = await hashPassword(config.seedAdminPassword);
   await pool.query(
-    `INSERT INTO users (email, name, role, countries) VALUES ($1, $2, 'ADMIN', '{PT,FR}')
-     ON CONFLICT (email) DO UPDATE SET role = 'ADMIN'`,
-    [config.seedAdminEmail, 'Administrador']
+    `INSERT INTO users (email, name, role, countries, password_hash) VALUES ($1, $2, 'ADMIN', '{PT,FR}', $3)
+     ON CONFLICT (email) DO UPDATE SET role = 'ADMIN',
+       password_hash = COALESCE(users.password_hash, EXCLUDED.password_hash)`,
+    [config.seedAdminEmail, 'Administrador', adminHash]
   );
-  console.log(`[seed] admin: ${config.seedAdminEmail}`);
+  console.log(`[seed] admin: ${config.seedAdminEmail} (palavra-passe: a definida em SEED_ADMIN_PASSWORD)`);
 
   // Trabalhos de exemplo: PT (sem departamento) + FR (ERT45 Loiret / ERT38 Isère).
   const works = [

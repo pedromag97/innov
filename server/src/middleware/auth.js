@@ -1,19 +1,17 @@
 // Autenticação: verifica Google ID token, emite JWT de sessão próprio, e guarda
 // de roles. O role vive na nossa tabela `users` (não no Google).
 import jwt from 'jsonwebtoken';
-import { OAuth2Client } from 'google-auth-library';
+import bcrypt from 'bcryptjs';
 import config from '../config.js';
 import { query } from '../db.js';
 
-const googleClient = new OAuth2Client(config.googleClientId);
-
-// Verifica o ID token vindo do Google Sign-In (frontend) e devolve o payload.
-export async function verifyGoogleIdToken(idToken) {
-  const ticket = await googleClient.verifyIdToken({
-    idToken,
-    audience: config.googleClientId,
-  });
-  return ticket.getPayload(); // { sub, email, email_verified, name, picture, ... }
+// Palavras-passe: hash bcrypt (custo 10). Nunca guardamos a password em claro.
+export function hashPassword(plain) {
+  return bcrypt.hash(String(plain), 10);
+}
+export function verifyPassword(plain, hash) {
+  if (!hash) return Promise.resolve(false);
+  return bcrypt.compare(String(plain), hash);
 }
 
 // Emite o JWT de sessão da app (curto, com role + âmbito).
@@ -61,10 +59,10 @@ export const requireManageWorks = requireRole('ADMIN', 'GERENTE', 'BACKOFFICE', 
 // Gestão de sistema (contas/equipas/departamentos).
 export const requireAdmin = requireRole('ADMIN');
 
-// Carrega o utilizador da DB pelo email (login). Atualiza google_sub/last_login.
+// Carrega o utilizador da DB pelo email (login), incluindo o hash da palavra-passe.
 export async function findUserByEmail(email) {
   const { rows } = await query(
-    `SELECT id, email, name, role, team_id, countries, active FROM users WHERE lower(email) = lower($1)`,
+    `SELECT id, email, name, role, team_id, countries, active, password_hash FROM users WHERE lower(email) = lower($1)`,
     [email]
   );
   return rows[0] || null;
@@ -76,9 +74,6 @@ export async function loadUserScope(userId) {
   return { departmentIds: rows.map((r) => r.department_id) };
 }
 
-export async function markLogin(userId, googleSub) {
-  await query(
-    `UPDATE users SET last_login = now(), google_sub = COALESCE(google_sub, $2) WHERE id = $1`,
-    [userId, googleSub]
-  );
+export async function markLogin(userId) {
+  await query('UPDATE users SET last_login = now() WHERE id = $1', [userId]);
 }

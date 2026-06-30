@@ -81,7 +81,8 @@ CREATE TABLE IF NOT EXISTS users (
   role         TEXT NOT NULL DEFAULT 'TERRENO',  -- ADMIN|GERENTE|BACKOFFICE|CDT|TERRENO
   team_id      INTEGER REFERENCES teams(id) ON DELETE SET NULL,  -- p/ TERRENO
   countries    TEXT[] NOT NULL DEFAULT '{}',     -- âmbito do BACKOFFICE: {'PT','FR'}
-  google_sub   TEXT UNIQUE,                 -- preenchido no 1º login (Google subject id)
+  password_hash TEXT,                       -- bcrypt da palavra-passe (login email/password)
+  google_sub   TEXT UNIQUE,                 -- legado (login Google); não usado no login email/password
   active       BOOLEAN NOT NULL DEFAULT TRUE,
   last_login   TIMESTAMPTZ,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()

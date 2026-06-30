@@ -44,8 +44,8 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('fc-logout', onLogout);
   }, []);
 
-  const loginWithGoogle = useCallback(async (idToken) => {
-    const { token, user: u } = await api.loginGoogle(idToken);
+  const login = useCallback(async (email, password) => {
+    const { token, user: u } = await api.login(email, password);
     setToken(token);
     setUser(u);
     return u;
@@ -79,7 +79,7 @@ export function AuthProvider({ children }) {
   const isTerreno = !!user && user.role === 'TERRENO';
 
   return (
-    <AuthContext.Provider value={{ user, ready, loginWithGoogle, loginDemo, logout, canManage, isAdmin, isTerreno }}>
+    <AuthContext.Provider value={{ user, ready, login, loginDemo, logout, canManage, isAdmin, isTerreno }}>
       {children}
     </AuthContext.Provider>
   );

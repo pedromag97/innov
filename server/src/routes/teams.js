@@ -1,7 +1,7 @@
 // Rotas de equipas e utilizadores (gestão pelo ADMIN).
 import { Router } from 'express';
 import { query, withTransaction } from '../db.js';
-import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { requireAuth, requireAdmin, hashPassword } from '../middleware/auth.js';
 import { isValidRole } from '../lib/scope.js';
 
 const router = Router();
@@ -83,17 +83,21 @@ router.get('/users', requireAdmin, async (_req, res) => {
 
 // POST /api/teams/users — provisionar utilizador (allow-list de login).
 router.post('/users', requireAdmin, async (req, res) => {
-  const { email, name, role, team_id, countries, department_ids } = req.body || {};
+  const { email, name, role, team_id, countries, department_ids, password } = req.body || {};
   if (!email || !role) return res.status(400).json({ error: 'email e role obrigatórios' });
   if (!isValidRole(role)) return res.status(400).json({ error: 'role inválido' });
+  if (password && String(password).length < 6) return res.status(400).json({ error: 'A palavra-passe tem de ter pelo menos 6 caracteres' });
+  const pwHash = password ? await hashPassword(password) : null;
 
   const user = await withTransaction(async (client) => {
+    // COALESCE preserva a password existente quando não vem uma nova no pedido.
     const { rows } = await client.query(
-      `INSERT INTO users (email, name, role, team_id, countries) VALUES ($1,$2,$3,$4,$5)
+      `INSERT INTO users (email, name, role, team_id, countries, password_hash) VALUES ($1,$2,$3,$4,$5,$6)
        ON CONFLICT (email) DO UPDATE SET name=EXCLUDED.name, role=EXCLUDED.role,
-         team_id=EXCLUDED.team_id, countries=EXCLUDED.countries
+         team_id=EXCLUDED.team_id, countries=EXCLUDED.countries,
+         password_hash=COALESCE(EXCLUDED.password_hash, users.password_hash)
        RETURNING id`,
-      [email, name || null, role, team_id || null, countries || []]
+      [email, name || null, role, team_id || null, countries || [], pwHash]
     );
     await syncDepartments(client, rows[0].id, department_ids || []);
     return rows[0];
@@ -111,15 +115,22 @@ router.patch('/users/:id', requireAdmin, async (req, res) => {
     return res.status(400).json({ error: 'Não podes alterar o teu próprio acesso de admin' });
   }
 
+  if (b.password != null && String(b.password).length < 6) {
+    return res.status(400).json({ error: 'A palavra-passe tem de ter pelo menos 6 caracteres' });
+  }
+  // Tratada como qualquer outra coluna, mas guardada como hash.
+  const pwHash = b.password ? await hashPassword(b.password) : undefined;
+
   const cols = ['name', 'role', 'team_id', 'countries', 'active'];
   const fields = cols.filter((f) => f in b);
   const updated = await withTransaction(async (client) => {
-    if (fields.length) {
-      const set = fields.map((f, i) => `${f} = $${i + 1}`);
+    if (fields.length || pwHash) {
+      const setParts = fields.map((f, i) => `${f} = $${i + 1}`);
       const values = fields.map((f) => (f === 'team_id' ? (b[f] || null) : b[f]));
+      if (pwHash) { values.push(pwHash); setParts.push(`password_hash = $${values.length}`); }
       values.push(req.params.id);
       const { rows } = await client.query(
-        `UPDATE users SET ${set.join(', ')} WHERE id = $${values.length} RETURNING id`, values
+        `UPDATE users SET ${setParts.join(', ')} WHERE id = $${values.length} RETURNING id`, values
       );
       if (!rows[0]) return null;
     }

@@ -152,7 +152,8 @@ function buildKml(list) {
 }
 
 export const demoApi = {
-  loginGoogle: () => delay({ token: 'demo', user: users[0] }),
+  login: () => delay({ token: 'demo', user: users[0] }),
+  changePassword: () => delay({ ok: true }),
 
   listWorks: (params) => delay({ works: clone(filterWorks(params)) }),
   getWork: (id) => delay({ work: clone(works.find((w) => String(w.id) === String(id))) }),
