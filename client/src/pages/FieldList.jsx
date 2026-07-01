@@ -39,7 +39,7 @@ export default function FieldList() {
         <select value={estado} onChange={(e) => setEstado(e.target.value)}
           className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm flex-1">
           <option value="">Todos os meus trabalhos</option>
-          {STATES.map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
+          {STATES.filter((s) => ['A_FAZER', 'RDV_AGENDADO'].includes(s.code)).map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
         </select>
         <div className="flex rounded-lg border border-slate-300 overflow-hidden text-sm">
           <button onClick={() => setView('mapa')} className={`px-3 py-1.5 ${view === 'mapa' ? 'bg-brand text-white' : 'bg-white'}`}>Mapa</button>

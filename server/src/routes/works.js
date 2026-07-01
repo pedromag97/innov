@@ -49,8 +49,11 @@ router.get('/', async (req, res) => {
   if (tipo_trabalho) add('w.tipo_trabalho = ?', tipo_trabalho);
   // Dashboard: só trabalhos ativos. FEITO->Entregas, ENTREGUE->Faturação, NOK->página NOK.
   if (req.query.active) where.push("w.estado NOT IN ('FEITO','ENTREGUE','NOK')");
-  // Equipa de terreno: só vê trabalhos marcados como visíveis.
-  if (req.user.role === 'TERRENO') where.push('w.visivel_terreno = true');
+  // Equipa de terreno: só vê trabalhos visíveis e acionáveis (A Fazer / RDV Agendado).
+  if (req.user.role === 'TERRENO') {
+    where.push('w.visivel_terreno = true');
+    where.push("w.estado IN ('A_FAZER','RDV_AGENDADO')");
+  }
   if (q) {
     params.push(`%${q}%`);
     const p = `$${params.length}`;
