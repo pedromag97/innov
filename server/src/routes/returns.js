@@ -83,7 +83,7 @@ router.post('/:id/returns', upload.array('files', 15), async (req, res) => {
   const attachments = [];
   for (const file of req.files || []) {
     try {
-      const stored = await saveWorkFile(work.id, file.buffer, file.originalname);
+      const stored = await saveWorkFile({ workId: work.id, idOrdem: work.id_ordem, buffer: file.buffer, originalName: file.originalname, mimeType: file.mimetype });
       const { rows } = await query(
         `INSERT INTO work_attachments (work_id, filename, stored_name, mime_type, size, kind, uploaded_by)
          VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id, filename, mime_type, size, kind`,

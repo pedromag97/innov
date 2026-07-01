@@ -38,6 +38,7 @@ const demoKind = (mime, name) => {
   if (m.startsWith('image/')) return 'image';
   if (m === 'application/pdf' || n.endsWith('.pdf')) return 'pdf';
   if (m === 'message/rfc822' || n.endsWith('.eml') || n.endsWith('.msg')) return 'email';
+  if (/\.(zip|rar|7z)$/.test(n) || /zip|rar|compressed/.test(m)) return 'archive';
   return 'other';
 };
 const departments = [

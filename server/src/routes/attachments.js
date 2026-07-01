@@ -3,11 +3,10 @@
 // Carregar/apagar: papéis de gestão, dentro do seu âmbito.
 import { Router } from 'express';
 import multer from 'multer';
-import { existsSync, createReadStream } from 'node:fs';
 import { query } from '../db.js';
 import { requireAuth, requireManageWorks } from '../middleware/auth.js';
 import { canAccessWork, canMutateWork } from '../lib/scope.js';
-import { saveWorkFile, workFilePath, removeWorkFile, attachmentKind } from '../lib/storage.js';
+import { saveWorkFile, getWorkFileStream, removeWorkFile, attachmentKind } from '../lib/storage.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -18,7 +17,7 @@ const router = Router();
 router.use(requireAuth);
 
 async function workScopeRow(id) {
-  const { rows } = await query('SELECT id, country, department_id, team_id FROM works WHERE id = $1', [id]);
+  const { rows } = await query('SELECT id, id_ordem, country, department_id, team_id FROM works WHERE id = $1', [id]);
   return rows[0] || null;
 }
 
@@ -45,7 +44,7 @@ router.post('/:id/attachments', requireManageWorks, upload.array('files', 10), a
 
   const saved = [];
   for (const f of req.files) {
-    const stored = await saveWorkFile(req.params.id, f.buffer, f.originalname);
+    const stored = await saveWorkFile({ workId: req.params.id, idOrdem: w.id_ordem, buffer: f.buffer, originalName: f.originalname, mimeType: f.mimetype });
     const { rows } = await query(
       `INSERT INTO work_attachments (work_id, filename, stored_name, mime_type, size, kind, uploaded_by)
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id, filename, mime_type, size, kind, created_at`,
@@ -64,11 +63,12 @@ router.get('/:id/attachments/:attId/download', async (req, res) => {
   const { rows } = await query('SELECT * FROM work_attachments WHERE id = $1 AND work_id = $2', [req.params.attId, req.params.id]);
   const a = rows[0];
   if (!a) return res.status(404).json({ error: 'Anexo não encontrado' });
-  const p = workFilePath(req.params.id, a.stored_name);
-  if (!existsSync(p)) return res.status(404).json({ error: 'Ficheiro em falta' });
+  const stream = await getWorkFileStream(req.params.id, a.stored_name);
+  if (!stream) return res.status(404).json({ error: 'Ficheiro em falta' });
   res.setHeader('Content-Type', a.mime_type || 'application/octet-stream');
   res.setHeader('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(a.filename)}`);
-  createReadStream(p).pipe(res);
+  stream.on('error', () => { if (!res.headersSent) res.status(502).json({ error: 'Falha ao ler o ficheiro' }); });
+  stream.pipe(res);
 });
 
 // DELETE /api/works/:id/attachments/:attId — apagar (gestão).

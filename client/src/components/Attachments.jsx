@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api.js';
 
-const ICON = { image: '🖼️', pdf: '📄', email: '✉️', other: '📎' };
+const ICON = { image: '🖼️', pdf: '📄', email: '✉️', archive: '🗜️', other: '📎' };
 const fmtSize = (n) => (!n ? '' : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 
 // Anexos de um trabalho: PDF / imagens / mails.

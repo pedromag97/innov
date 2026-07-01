@@ -1,13 +1,16 @@
-// Upload de fotos para o Google Drive via Service Account.
+// Armazenamento de anexos no Google Drive via Service Account (Drive Partilhado).
 //
 // Setup:
-//   1. Criar uma Service Account no Google Cloud, gerar chave JSON.
-//   2. Guardar o JSON e apontar GOOGLE_SERVICE_ACCOUNT_FILE para ele.
-//   3. Partilhar a pasta de destino do Drive (DRIVE_ROOT_FOLDER_ID) com o email
-//      da service account (xxx@projeto.iam.gserviceaccount.com), permissão Editor.
+//   1. Google Cloud Console → criar projeto → ativar a Google Drive API.
+//   2. Criar uma Service Account → gerar chave JSON → guardar em
+//      GOOGLE_SERVICE_ACCOUNT_FILE (ex.: server/service-account.json, gitignored).
+//   3. Criar um Drive Partilhado (Shared Drive) e adicionar o email da service
+//      account (xxx@projeto.iam.gserviceaccount.com) como Gestor de Conteúdo.
+//   4. DRIVE_ROOT_FOLDER_ID = ID do Drive Partilhado (ou de uma pasta lá dentro).
 //
-// Se as credenciais não estiverem configuradas, uploadPhoto devolve null e o
-// retorno é guardado sem foto (degradação suave em dev).
+// Ficheiros ficam PRIVADOS (sem partilha pública) — o download é servido pela
+// própria app (proxy autenticado). Se não estiver configurado, driveEnabled()=false
+// e o armazenamento cai no disco do servidor.
 import { readFileSync } from 'node:fs';
 import { google } from 'googleapis';
 import { Readable } from 'node:stream';
@@ -20,11 +23,11 @@ function getDrive() {
   if (initTried) return driveClient;
   initTried = true;
   try {
-    if (!config.driveServiceAccountFile) return null;
+    if (!config.driveServiceAccountFile || !config.driveRootFolderId) return null;
     const creds = JSON.parse(readFileSync(config.driveServiceAccountFile, 'utf8'));
     const auth = new google.auth.GoogleAuth({
       credentials: creds,
-      scopes: ['https://www.googleapis.com/auth/drive.file'],
+      scopes: ['https://www.googleapis.com/auth/drive'],
     });
     driveClient = google.drive({ version: 'v3', auth });
   } catch (err) {
@@ -34,54 +37,61 @@ function getDrive() {
   return driveClient;
 }
 
-// Garante uma subpasta por trabalho (nome = id_ordem). Devolve o folderId.
+export function driveEnabled() {
+  return !!getDrive();
+}
+
+// Subpasta por trabalho (nome = id_ordem) dentro da raiz. Devolve o folderId.
 async function ensureWorkFolder(drive, idOrdem) {
   const parent = config.driveRootFolderId;
+  const safe = String(idOrdem || 'sem-id').replace(/'/g, "\\'");
   const q = [
-    `name = '${String(idOrdem).replace(/'/g, "\\'")}'`,
+    `name = '${safe}'`,
     "mimeType = 'application/vnd.google-apps.folder'",
-    parent ? `'${parent}' in parents` : null,
+    `'${parent}' in parents`,
     'trashed = false',
-  ].filter(Boolean).join(' and ');
+  ].join(' and ');
 
-  const found = await drive.files.list({ q, fields: 'files(id)', spaces: 'drive' });
+  const found = await drive.files.list({
+    q, fields: 'files(id)', spaces: 'drive',
+    supportsAllDrives: true, includeItemsFromAllDrives: true,
+  });
   if (found.data.files?.length) return found.data.files[0].id;
 
   const created = await drive.files.create({
     requestBody: {
-      name: String(idOrdem),
+      name: String(idOrdem || 'sem-id'),
       mimeType: 'application/vnd.google-apps.folder',
-      parents: parent ? [parent] : undefined,
+      parents: [parent],
     },
-    fields: 'id',
+    fields: 'id', supportsAllDrives: true,
   });
   return created.data.id;
 }
 
-// Faz upload de um ficheiro (buffer) e devolve { driveFileId, url, thumbUrl, ... }.
-// Devolve null se o Drive não estiver configurado.
-export async function uploadPhoto({ buffer, filename, mimeType, idOrdem }) {
+// Upload de um buffer. Devolve o fileId do Drive.
+export async function driveUpload({ buffer, filename, mimeType, idOrdem }) {
   const drive = getDrive();
-  if (!drive) return null;
-
   const folderId = await ensureWorkFolder(drive, idOrdem);
   const created = await drive.files.create({
     requestBody: { name: filename, parents: [folderId] },
-    media: { mimeType, body: Readable.from(buffer) },
-    fields: 'id, webViewLink, thumbnailLink',
+    media: { mimeType: mimeType || 'application/octet-stream', body: Readable.from(buffer) },
+    fields: 'id', supportsAllDrives: true,
   });
-  const fileId = created.data.id;
+  return created.data.id;
+}
 
-  // Tornar legível por quem tem o link (para mostrar no backoffice).
-  try {
-    await drive.permissions.create({ fileId, requestBody: { role: 'reader', type: 'anyone' } });
-  } catch { /* pasta pode já herdar permissões */ }
+// Stream de leitura de um ficheiro (para o proxy de download).
+export async function driveStream(fileId) {
+  const drive = getDrive();
+  const resp = await drive.files.get(
+    { fileId, alt: 'media', supportsAllDrives: true },
+    { responseType: 'stream' }
+  );
+  return resp.data;
+}
 
-  return {
-    driveFileId: fileId,
-    url: created.data.webViewLink || `https://drive.google.com/file/d/${fileId}/view`,
-    thumbUrl: created.data.thumbnailLink || null,
-    filename,
-    mimeType,
-  };
+export async function driveDelete(fileId) {
+  const drive = getDrive();
+  await drive.files.delete({ fileId, supportsAllDrives: true });
 }
