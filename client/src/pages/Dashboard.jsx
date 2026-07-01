@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState('');
   const [nokCount, setNokCount] = useState(0);
+  const [gcCount, setGcCount] = useState(0);
   const [collapsed, setCollapsed] = useState(() => new Set()); // zonas minimizadas (por chave de grupo)
   const toggleGroup = (key) => setCollapsed((prev) => {
     const next = new Set(prev);
@@ -32,6 +33,7 @@ export default function Dashboard() {
   useEffect(() => { api.listDepartments().then((d) => setDepartments(d.departments)).catch(() => {}); }, []);
   useEffect(() => { api.listWorks({ active: 1 }).then((d) => setAllWorks(d.works)).catch(() => {}); }, []);
   useEffect(() => { api.listWorks({ estado: 'NOK' }).then((d) => setNokCount(d.works.length)).catch(() => {}); }, []);
+  useEffect(() => { api.listWorks({ estado: 'PENDENTE', pendente_motivo: 'GC_CRVT_ENVIADO' }).then((d) => setGcCount(d.works.length)).catch(() => {}); }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -97,6 +99,14 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-slate-800">Trabalhos ({works.length})</h1>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/gc-crvt')}
+              className="rounded-lg border border-sky-300 text-sky-700 px-3 py-1.5 text-sm font-medium hover:bg-sky-50 inline-flex items-center gap-1"
+              title="Pendentes com GC - CRVT Enviado"
+            >
+              GC/CRVT
+              {gcCount > 0 && <span className="rounded-full bg-sky-600 text-white text-xs px-1.5 leading-5 min-w-5 text-center">{gcCount}</span>}
+            </button>
             <button
               onClick={() => navigate('/nok')}
               className="rounded-lg border border-red-300 text-red-700 px-3 py-1.5 text-sm font-medium hover:bg-red-50 inline-flex items-center gap-1"

@@ -11,6 +11,7 @@ import Admin from './pages/Admin.jsx';
 import Deliveries from './pages/Deliveries.jsx';
 import Billing from './pages/Billing.jsx';
 import NokList from './pages/NokList.jsx';
+import GcCrvtList from './pages/GcCrvtList.jsx';
 
 function Protected({ children, allow }) {
   const { user, ready } = useAuth();
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="/entregas" element={<Protected allow={MANAGE_ROLES}><Deliveries /></Protected>} />
         <Route path="/faturacao" element={<Protected allow={['ADMIN', 'GERENTE']}><Billing /></Protected>} />
         <Route path="/nok" element={<Protected allow={MANAGE_ROLES}><NokList /></Protected>} />
+        <Route path="/gc-crvt" element={<Protected allow={MANAGE_ROLES}><GcCrvtList /></Protected>} />
         <Route path="/admin" element={<Protected allow={['ADMIN', 'GERENTE']}><Admin /></Protected>} />
 
         {/* Equipa de terreno (qualquer papel autenticado) */}

@@ -35,20 +35,22 @@ async function deptZona(id) {
 // Filtros: ?estado=&team_id=&country=&zona=&department_id=&cdt=&tipo_trabalho=&q=
 // Âmbito aplicado conforme o papel do utilizador.
 router.get('/', async (req, res) => {
-  const { estado, team_id, country, zona, department_id, cdt, tipo_trabalho, q } = req.query;
+  const { estado, pendente_motivo, team_id, country, zona, department_id, cdt, tipo_trabalho, q } = req.query;
   const where = [];
   const params = [];
   const add = (clause, val) => { params.push(val); where.push(clause.replace('?', `$${params.length}`)); };
 
   if (estado) add('w.estado = ?', estado);
+  if (pendente_motivo) add('w.pendente_motivo = ?', pendente_motivo);
   if (team_id) add('w.team_id = ?', team_id);
   if (country) add('w.country = ?', country);
   if (zona) add('w.zona = ?', zona);
   if (department_id) add('w.department_id = ?', department_id);
   if (cdt) add('w.cdt = ?', cdt);
   if (tipo_trabalho) add('w.tipo_trabalho = ?', tipo_trabalho);
-  // Dashboard: só trabalhos ativos. FEITO->Entregas, ENTREGUE->Faturação, NOK->página NOK.
-  if (req.query.active) where.push("w.estado NOT IN ('FEITO','ENTREGUE','NOK')");
+  // Dashboard: só trabalhos ativos. FEITO->Entregas, ENTREGUE->Faturação, NOK->página NOK,
+  // e Pendente com 'GC - CRVT Enviado' -> página própria (aguarda resposta).
+  if (req.query.active) where.push("w.estado NOT IN ('FEITO','ENTREGUE','NOK') AND NOT (w.estado = 'PENDENTE' AND w.pendente_motivo = 'GC_CRVT_ENVIADO')");
   // Equipa de terreno: só vê trabalhos visíveis e acionáveis (A Fazer / RDV Agendado).
   if (req.user.role === 'TERRENO') {
     where.push('w.visivel_terreno = true');
