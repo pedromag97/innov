@@ -7,20 +7,20 @@ import { requireAuth } from '../middleware/auth.js';
 import { isValidState } from '../lib/states.js';
 import { logHistory } from '../lib/history.js';
 import { canAccessWork } from '../lib/scope.js';
-import { uploadPhoto } from '../lib/drive.js';
+import { saveWorkFile, attachmentKind } from '../lib/storage.js';
 import { notifyBackofficeReturn } from '../lib/notify.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024, files: 10 }, // 15MB/foto, até 10 fotos
+  limits: { fileSize: 50 * 1024 * 1024, files: 15 }, // 50MB/ficheiro (fotos, .zip, .rar…), até 15
 });
 
 const router = Router();
 router.use(requireAuth);
 
 // POST /api/works/:id/returns
-// form-data: new_estado, observacoes, gps_lat, gps_lng, photos[]
-router.post('/:id/returns', upload.array('photos', 10), async (req, res) => {
+// form-data: new_estado, observacoes, gps_lat, gps_lng, files[] (fotos, zip, rar, pdf…)
+router.post('/:id/returns', upload.array('files', 15), async (req, res) => {
   const workId = req.params.id;
   const { new_estado, pendente_motivo, rdv_data, observacoes, gps_lat, gps_lng } = req.body || {};
 
@@ -78,26 +78,20 @@ router.post('/:id/returns', upload.array('photos', 10), async (req, res) => {
 
   const { work, ret } = outcome;
 
-  // Upload das fotos para o Drive (fora da transação; falhas não revertem o retorno).
-  const photos = [];
+  // Ficheiros do retorno (fotos, .zip, .rar, PDF…) guardados no servidor como
+  // anexos do trabalho. Fora da transação; falhas não revertem o retorno.
+  const attachments = [];
   for (const file of req.files || []) {
     try {
-      const meta = await uploadPhoto({
-        buffer: file.buffer,
-        filename: `${ret.id}-${file.originalname}`,
-        mimeType: file.mimetype,
-        idOrdem: work.id_ordem,
-      });
-      if (meta) {
-        const { rows } = await query(
-          `INSERT INTO work_photos (return_id, work_id, drive_file_id, url, thumb_url, filename, mime_type)
-           VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id, url, thumb_url`,
-          [ret.id, work.id, meta.driveFileId, meta.url, meta.thumbUrl, meta.filename, meta.mimeType]
-        );
-        photos.push(rows[0]);
-      }
+      const stored = await saveWorkFile(work.id, file.buffer, file.originalname);
+      const { rows } = await query(
+        `INSERT INTO work_attachments (work_id, filename, stored_name, mime_type, size, kind, uploaded_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id, filename, mime_type, size, kind`,
+        [work.id, file.originalname, stored, file.mimetype, file.size, attachmentKind(file.mimetype, file.originalname), req.user.uid]
+      );
+      attachments.push(rows[0]);
     } catch (err) {
-      console.warn('[returns] upload de foto falhou:', err.message);
+      console.warn('[returns] upload de ficheiro falhou:', err.message);
     }
   }
 
@@ -106,7 +100,7 @@ router.post('/:id/returns', upload.array('photos', 10), async (req, res) => {
     work, ret, teamName: null, userName: req.user.email,
   }).catch(() => {});
 
-  res.status(201).json({ return: { ...ret, photos } });
+  res.status(201).json({ return: { ...ret, attachments } });
 });
 
 export default router;

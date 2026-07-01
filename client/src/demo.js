@@ -217,6 +217,12 @@ export const demoApi = {
       w.rdv_data = ns === 'RDV_AGENDADO' ? (rdvd || null) : null;
       w.pending_delivery = true; // entra na fila "a entregar"
       demoReturns[w.id] = { return_estado: ns || w.estado, return_obs: obs, return_user: 'Equipa (demo)', return_at: new Date().toISOString(), gps_lat: w.lat, gps_lng: w.lng, photos: [] };
+      // Ficheiros do retorno -> anexos do trabalho.
+      const list = attData.get(String(id)) || [];
+      for (const f of (fd.getAll ? fd.getAll('files') : [])) {
+        list.push({ id: attSeq++, filename: f.name, mime_type: f.type, size: f.size, kind: demoKind(f.type, f.name), created_at: new Date().toISOString(), _file: f });
+      }
+      attData.set(String(id), list);
     }
     return delay({ return: { id: nextId++ } });
   },

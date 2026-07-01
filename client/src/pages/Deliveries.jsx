@@ -3,6 +3,7 @@ import { api } from '../api.js';
 import { useAuth } from '../auth/AuthContext.jsx';
 import StateBadge from '../components/StateBadge.jsx';
 import CountryFlag from '../components/CountryFlag.jsx';
+import Attachments from '../components/Attachments.jsx';
 
 // Fila "A entregar": trabalhos com retorno do terreno, à espera de serem
 // entregues ao cliente/operador. O backoffice revê e marca como Entregue.
@@ -78,16 +79,11 @@ export default function Deliveries() {
               {w.gps_lat != null && <span>· GPS {Number(w.gps_lat).toFixed(4)}, {Number(w.gps_lng).toFixed(4)}</span>}
             </div>
             {w.return_obs && <p className="mt-1 text-slate-700">{w.return_obs}</p>}
-            {Array.isArray(w.photos) && w.photos.length > 0 && (
-              <div className="mt-2 flex gap-2 flex-wrap">
-                {w.photos.map((p) => (
-                  <a key={p.id} href={p.url} target="_blank" rel="noreferrer">
-                    <img src={p.thumb_url || p.url} alt="" className="h-16 w-16 object-cover rounded-lg border border-slate-200" />
-                  </a>
-                ))}
-              </div>
-            )}
-            {(!w.photos || w.photos.length === 0) && <p className="mt-1 text-xs text-slate-400">Sem fotos.</p>}
+          </div>
+
+          {/* Ficheiros do retorno (fotos, .zip, .rar, PDF) */}
+          <div className="mt-3">
+            <Attachments workId={w.id} canEdit={false} />
           </div>
 
           <div className="mt-3 flex gap-2">

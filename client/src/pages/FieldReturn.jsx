@@ -66,7 +66,7 @@ export default function FieldReturn() {
     fd.append('rdv_data', estado === 'RDV_AGENDADO' ? (rdv || '') : '');
     fd.append('observacoes', observacoes);
     if (gps) { fd.append('gps_lat', gps.lat); fd.append('gps_lng', gps.lng); }
-    files.forEach((f) => fd.append('photos', f));
+    files.forEach((f) => fd.append('files', f));
     try {
       await api.submitReturn(id, fd);
       setDone(true);
@@ -160,30 +160,45 @@ export default function FieldReturn() {
             placeholder="Notas do terreno…" />
         </label>
 
-        {/* Fotos: câmara ou galeria, múltiplas */}
+        {/* Ficheiros do retorno: fotos (câmara/galeria) + .zip/.rar/PDF */}
         <div>
-          <span className="block text-xs font-medium text-slate-500 mb-1">Fotos</span>
+          <span className="block text-xs font-medium text-slate-500 mb-1">Ficheiros (fotos, .zip, .rar, PDF)</span>
           <div className="flex gap-2">
-            <label className="flex-1 cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-sm text-center hover:bg-slate-50">
+            <label className="flex-1 cursor-pointer rounded-lg border border-slate-300 px-2 py-2 text-sm text-center hover:bg-slate-50">
               📷 Câmara
               <input type="file" accept="image/*" capture="environment" multiple onChange={onPickFiles} className="hidden" />
             </label>
-            <label className="flex-1 cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-sm text-center hover:bg-slate-50">
+            <label className="flex-1 cursor-pointer rounded-lg border border-slate-300 px-2 py-2 text-sm text-center hover:bg-slate-50">
               🖼️ Galeria
               <input type="file" accept="image/*" multiple onChange={onPickFiles} className="hidden" />
             </label>
+            <label className="flex-1 cursor-pointer rounded-lg border border-slate-300 px-2 py-2 text-sm text-center hover:bg-slate-50">
+              📎 Ficheiro
+              <input type="file" accept=".zip,.rar,application/zip,application/x-rar-compressed,application/pdf,.doc,.docx,.xls,.xlsx" multiple onChange={onPickFiles} className="hidden" />
+            </label>
           </div>
           {files.length > 0 && (
-            <div className="mt-2 grid grid-cols-4 gap-2">
-              {files.map((f, i) => (
-                <div key={i} className="relative">
-                  <img src={URL.createObjectURL(f)} alt="" className="h-16 w-full object-cover rounded-lg" />
-                  <button type="button" onClick={() => removeFile(i)}
-                    className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-red-600 text-white text-xs leading-5">×</button>
-                </div>
-              ))}
-            </div>
+            <ul className="mt-2 space-y-1">
+              {files.map((f, i) => {
+                const isImg = (f.type || '').startsWith('image/');
+                const mb = f.size >= 1048576 ? `${(f.size / 1048576).toFixed(1)} MB` : `${Math.round(f.size / 1024)} KB`;
+                return (
+                  <li key={i} className="flex items-center gap-2 rounded-lg border border-slate-200 p-1.5 text-sm">
+                    {isImg
+                      ? <img src={URL.createObjectURL(f)} alt="" className="h-10 w-10 object-cover rounded" />
+                      : <span className="h-10 w-10 flex items-center justify-center text-xl bg-slate-50 rounded">{/\.(zip|rar)$/i.test(f.name) ? '🗜️' : '📄'}</span>}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-slate-700">{f.name}</span>
+                      <span className="block text-xs text-slate-400">{mb}</span>
+                    </span>
+                    <button type="button" onClick={() => removeFile(i)}
+                      className="shrink-0 h-6 w-6 rounded-full bg-red-600 text-white text-xs leading-6">×</button>
+                  </li>
+                );
+              })}
+            </ul>
           )}
+          <p className="mt-1 text-xs text-slate-400">Até 50 MB por ficheiro.</p>
         </div>
 
         {/* GPS automático */}
