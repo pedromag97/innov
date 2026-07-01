@@ -7,6 +7,7 @@ import StateBadge from '../components/StateBadge.jsx';
 import CountryFlag from '../components/CountryFlag.jsx';
 import Countdown from '../components/Countdown.jsx';
 import Attachments from '../components/Attachments.jsx';
+import PendingAttachments from '../components/PendingAttachments.jsx';
 import { useCountries } from '../hooks/useCountries.js';
 
 const EMPTY = {
@@ -38,6 +39,7 @@ export default function WorkForm() {
   const countries = useCountries();
   const [history, setHistory] = useState([]);
   const [returns, setReturns] = useState([]);
+  const [pending, setPending] = useState([]); // anexos em staging (só na criação)
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -124,8 +126,18 @@ export default function WorkForm() {
       return;
     }
     try {
-      if (isEdit) await api.updateWork(id, payload);
-      else await api.createWork(payload);
+      if (isEdit) {
+        await api.updateWork(id, payload);
+      } else {
+        const { work } = await api.createWork(payload);
+        // Sobe os anexos preparados para o novo trabalho (falhas não bloqueiam).
+        if (work?.id && pending.length) {
+          const fd = new FormData();
+          pending.forEach((f) => fd.append('files', f));
+          try { await api.uploadAttachments(work.id, fd); }
+          catch (e) { console.warn('upload de anexos falhou:', e.message); }
+        }
+      }
       navigate('/dashboard');
     } catch (err) {
       setError(err.message);
@@ -296,7 +308,9 @@ export default function WorkForm() {
           />
         </div>
 
-        {isEdit && <Attachments workId={id} canEdit />}
+        {isEdit
+          ? <Attachments workId={id} canEdit />
+          : <PendingAttachments files={pending} onChange={setPending} />}
 
         {isEdit && returns.length > 0 && (
           <div className="rounded-xl border border-slate-200 bg-white p-4">
