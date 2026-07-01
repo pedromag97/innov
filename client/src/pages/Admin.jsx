@@ -148,7 +148,7 @@ function UsersPanel({ users, teams, departments, countries, onChange, setError }
         <div className="grid sm:grid-cols-3 gap-2">
           <label className="block sm:col-span-2">
             <span className="lbl">Email *</span>
-            <input required type="email" value={form.email} onChange={set('email')} disabled={!!form.id} className="adm-inp" placeholder="pessoa@empresa.pt" />
+            <input required type="email" value={form.email} onChange={set('email')} className="adm-inp" placeholder="pessoa@empresa.pt" />
           </label>
           <label className="block">
             <span className="lbl">Nome</span>

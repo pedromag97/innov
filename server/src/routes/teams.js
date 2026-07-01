@@ -121,22 +121,33 @@ router.patch('/users/:id', requireAdmin, async (req, res) => {
   // Tratada como qualquer outra coluna, mas guardada como hash.
   const pwHash = b.password ? await hashPassword(b.password) : undefined;
 
-  const cols = ['name', 'role', 'team_id', 'countries', 'active'];
+  if ('email' in b) {
+    b.email = String(b.email || '').trim();
+    if (!b.email) return res.status(400).json({ error: 'Email não pode ficar vazio' });
+  }
+
+  const cols = ['name', 'email', 'role', 'team_id', 'countries', 'active'];
   const fields = cols.filter((f) => f in b);
-  const updated = await withTransaction(async (client) => {
-    if (fields.length || pwHash) {
-      const setParts = fields.map((f, i) => `${f} = $${i + 1}`);
-      const values = fields.map((f) => (f === 'team_id' ? (b[f] || null) : b[f]));
-      if (pwHash) { values.push(pwHash); setParts.push(`password_hash = $${values.length}`); }
-      values.push(req.params.id);
-      const { rows } = await client.query(
-        `UPDATE users SET ${setParts.join(', ')} WHERE id = $${values.length} RETURNING id`, values
-      );
-      if (!rows[0]) return null;
-    }
-    if ('department_ids' in b) await syncDepartments(client, req.params.id, b.department_ids || []);
-    return req.params.id;
-  });
+  let updated;
+  try {
+    updated = await withTransaction(async (client) => {
+      if (fields.length || pwHash) {
+        const setParts = fields.map((f, i) => `${f} = $${i + 1}`);
+        const values = fields.map((f) => (f === 'team_id' ? (b[f] || null) : b[f]));
+        if (pwHash) { values.push(pwHash); setParts.push(`password_hash = $${values.length}`); }
+        values.push(req.params.id);
+        const { rows } = await client.query(
+          `UPDATE users SET ${setParts.join(', ')} WHERE id = $${values.length} RETURNING id`, values
+        );
+        if (!rows[0]) return null;
+      }
+      if ('department_ids' in b) await syncDepartments(client, req.params.id, b.department_ids || []);
+      return req.params.id;
+    });
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'Já existe um utilizador com esse email' });
+    throw err;
+  }
   if (!updated) return res.status(404).json({ error: 'Utilizador não encontrado' });
   const { rows } = await query(`${USERS_SELECT} WHERE u.id = $1 GROUP BY u.id, t.name`, [req.params.id]);
   res.json({ user: rows[0] });
