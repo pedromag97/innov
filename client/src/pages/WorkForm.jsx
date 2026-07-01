@@ -231,7 +231,7 @@ export default function WorkForm() {
           <Field label="Ticket ref"><input value={form.ticket_ref || ''} onChange={set('ticket_ref')} className="inp" placeholder="C35…, SRO-BPI…" /></Field>
         </div>
 
-        {form.estado === 'PENDENTE' && (
+        {(form.estado === 'PENDENTE' || form.visivel_terreno === false) && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
             <label className="flex items-start gap-2 cursor-pointer">
               <input type="checkbox" checked={form.visivel_terreno !== false}
@@ -239,8 +239,9 @@ export default function WorkForm() {
               <span className="text-sm">
                 <span className="font-medium text-amber-900">Mostrar no mapa e à equipa de terreno</span>
                 <span className="block text-xs text-amber-700">
-                  Trabalho pendente — se ainda não vale a pena enviar ao terreno (ex.: à espera de GC/CRVT/neve),
-                  desmarca para o esconder do mapa e da equipa de terreno.
+                  {form.visivel_terreno === false
+                    ? 'Este trabalho está escondido do mapa e da equipa de terreno. Marca para o voltar a mostrar.'
+                    : 'Se ainda não vale a pena enviar ao terreno (ex.: à espera de GC/CRVT/neve), desmarca para o esconder do mapa e da equipa.'}
                 </span>
               </span>
             </label>

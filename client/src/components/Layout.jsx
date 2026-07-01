@@ -10,20 +10,14 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [pending, setPending] = useState(0);
-  const [nok, setNok] = useState(0);
 
-  // Contadores (entregas pendentes + NOK). Atualizam ao mudar de página ou ao agir.
+  // Contador de entregas pendentes (atualiza ao mudar de página ou ao entregar).
   useEffect(() => {
     if (!user || !canManage) return;
-    const refreshDeliveries = () => api.listDeliveries().then((d) => setPending(d.deliveries.length)).catch(() => {});
-    const refreshNok = () => api.listWorks({ estado: 'NOK' }).then((d) => setNok(d.works.length)).catch(() => {});
-    refreshDeliveries(); refreshNok();
-    window.addEventListener('fc-deliveries-changed', refreshDeliveries);
-    window.addEventListener('fc-nok-changed', refreshNok);
-    return () => {
-      window.removeEventListener('fc-deliveries-changed', refreshDeliveries);
-      window.removeEventListener('fc-nok-changed', refreshNok);
-    };
+    const refresh = () => api.listDeliveries().then((d) => setPending(d.deliveries.length)).catch(() => {});
+    refresh();
+    window.addEventListener('fc-deliveries-changed', refresh);
+    return () => window.removeEventListener('fc-deliveries-changed', refresh);
   }, [user, canManage, location.pathname]);
 
   if (!user) return <Outlet />;
@@ -39,12 +33,6 @@ export default function Layout() {
               <Link to="/entregas" className="hover:underline inline-flex items-center gap-1">
                 Entregas
                 {pending > 0 && <span className="rounded-full bg-amber-400 text-amber-900 text-xs px-1.5 leading-5 min-w-5 text-center">{pending}</span>}
-              </Link>
-            )}
-            {canManage && (
-              <Link to="/nok" className="hover:underline inline-flex items-center gap-1">
-                NOK
-                {nok > 0 && <span className="rounded-full bg-red-400 text-red-900 text-xs px-1.5 leading-5 min-w-5 text-center">{nok}</span>}
               </Link>
             )}
             {isManager && <Link to="/faturacao" className="hover:underline">Faturação</Link>}

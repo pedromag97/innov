@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState('');
+  const [nokCount, setNokCount] = useState(0);
   const [collapsed, setCollapsed] = useState(() => new Set()); // zonas minimizadas (por chave de grupo)
   const toggleGroup = (key) => setCollapsed((prev) => {
     const next = new Set(prev);
@@ -30,6 +31,7 @@ export default function Dashboard() {
   useEffect(() => { api.listTeams().then((d) => setTeams(d.teams)).catch(() => {}); }, []);
   useEffect(() => { api.listDepartments().then((d) => setDepartments(d.departments)).catch(() => {}); }, []);
   useEffect(() => { api.listWorks({ active: 1 }).then((d) => setAllWorks(d.works)).catch(() => {}); }, []);
+  useEffect(() => { api.listWorks({ estado: 'NOK' }).then((d) => setNokCount(d.works.length)).catch(() => {}); }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -94,12 +96,21 @@ export default function Dashboard() {
       <aside className="order-1 space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-slate-800">Trabalhos ({works.length})</h1>
-          <button
-            onClick={() => navigate('/trabalhos/novo')}
-            className="rounded-lg bg-brand text-white px-3 py-1.5 text-sm font-medium hover:bg-brand-dark"
-          >
-            + Novo
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/nok')}
+              className="rounded-lg border border-red-300 text-red-700 px-3 py-1.5 text-sm font-medium hover:bg-red-50 inline-flex items-center gap-1"
+            >
+              NOK
+              {nokCount > 0 && <span className="rounded-full bg-red-600 text-white text-xs px-1.5 leading-5 min-w-5 text-center">{nokCount}</span>}
+            </button>
+            <button
+              onClick={() => navigate('/trabalhos/novo')}
+              className="rounded-lg bg-brand text-white px-3 py-1.5 text-sm font-medium hover:bg-brand-dark"
+            >
+              + Novo
+            </button>
+          </div>
         </div>
 
         {/* Filtros */}
