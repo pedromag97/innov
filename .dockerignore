@@ -3,6 +3,8 @@
 **/.env
 **/.env.local
 server/service-account.json
+server/uploads
+**/uploads
 **/*.log
 .git
 .gitignore

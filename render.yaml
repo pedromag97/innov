@@ -1,0 +1,37 @@
+# Blueprint do Render (deploy a partir do GitHub).
+# No Render: New + → Blueprint → escolhe o repo innov. Ele lê este ficheiro.
+# Depois preenche as variáveis marcadas (DATABASE_URL, SEED_ADMIN_*).
+#
+# NOTA sobre ficheiros do retorno (uploads): no plano free NÃO há disco persistente,
+# por isso os anexos perdem-se em cada redeploy. Para uso a sério, sobe para um plano
+# com disco (descomenta o bloco "disk") ou passa o armazenamento para Cloudflare R2.
+services:
+  - type: web
+    name: innov
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free            # muda para "starter" (pago) para ficar sempre ligado + disco
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render injeta a sua própria PORT — o servidor usa process.env.PORT.
+      - key: DATABASE_URL           # Neon: postgres://...neon.tech/neondb?sslmode=require
+        sync: false                 # define no dashboard (secreto)
+      - key: JWT_SECRET
+        generateValue: true         # gerado automaticamente
+      - key: JWT_EXPIRES_IN
+        value: 12h
+      - key: SEED_ADMIN_EMAIL
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+      - key: UPLOADS_DIR
+        value: /app/server/uploads
+    # ── Descomenta no plano pago para persistir os anexos do retorno ──
+    # disk:
+    #   name: uploads
+    #   mountPath: /app/server/uploads
+    #   sizeGB: 1
