@@ -32,6 +32,7 @@ export default function NokList() {
   return (
     <div className="mx-auto max-w-3xl p-4 space-y-4">
       <div className="flex items-center gap-2">
+        <button onClick={() => navigate('/dashboard')} className="rounded-lg border border-slate-300 px-2 py-1 text-sm hover:bg-slate-50">← Dashboard</button>
         <h1 className="text-lg font-bold text-slate-800">NOK</h1>
         <span className="rounded-full bg-red-100 text-red-700 text-sm px-2 py-0.5">{items.length}</span>
         <button onClick={reload} className="ml-auto text-sm text-brand underline">atualizar</button>
